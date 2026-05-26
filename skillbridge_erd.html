@@ -1,0 +1,166 @@
+
+<div style="padding: 1rem 0">
+<h2 class="sr-only">SkillBridge database schema entity relationship diagram</h2>
+<div id="erd"></div>
+</div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const { svg } = await mermaid.render('erd-svg', `erDiagram
+  profiles ||--o{ user_skills : has
+  profiles ||--o{ matches : "is learner"
+  profiles ||--o{ matches : "is teacher"
+  profiles ||--o{ sessions : participates
+  profiles ||--o{ quiz_attempts : takes
+  profiles ||--o{ user_badges : earns
+  skills ||--o{ user_skills : "tagged on"
+  skills ||--o{ matches : "matched by"
+  matches ||--o{ sessions : "leads to"
+  sessions ||--o{ quizzes : generates
+  quizzes ||--o{ quiz_questions : contains
+  quiz_attempts ||--o{ quiz_responses : has
+  quiz_questions ||--o{ quiz_responses : answered_in
+  badges ||--o{ user_badges : awarded_as
+
+  profiles {
+    uuid id PK
+    text username
+    text full_name
+    text avatar_url
+    text bio
+    text timezone
+    int xp_points
+    timestamp created_at
+  }
+
+  skills {
+    uuid id PK
+    text name
+    text category
+    text description
+    timestamp created_at
+  }
+
+  user_skills {
+    uuid id PK
+    uuid user_id FK
+    uuid skill_id FK
+    text role
+    int proficiency_level
+    bool is_active
+    timestamp created_at
+  }
+
+  matches {
+    uuid id PK
+    uuid learner_id FK
+    uuid teacher_id FK
+    uuid skill_id FK
+    text status
+    int match_score
+    timestamp matched_at
+    timestamp updated_at
+  }
+
+  sessions {
+    uuid id PK
+    uuid match_id FK
+    uuid host_id FK
+    text status
+    text webrtc_room_id
+    timestamp scheduled_at
+    timestamp started_at
+    timestamp ended_at
+    int duration_seconds
+  }
+
+  quizzes {
+    uuid id PK
+    uuid session_id FK
+    text title
+    text status
+    int passing_score
+    timestamp created_at
+  }
+
+  quiz_questions {
+    uuid id PK
+    uuid quiz_id FK
+    text question_text
+    jsonb options
+    text correct_answer
+    int order_index
+  }
+
+  quiz_attempts {
+    uuid id PK
+    uuid quiz_id FK
+    uuid user_id FK
+    int score
+    bool passed
+    timestamp completed_at
+  }
+
+  quiz_responses {
+    uuid id PK
+    uuid attempt_id FK
+    uuid question_id FK
+    text answer_given
+    bool is_correct
+  }
+
+  badges {
+    uuid id PK
+    text name
+    text description
+    text icon_url
+    text criteria_type
+    jsonb criteria_value
+    timestamp created_at
+  }
+
+  user_badges {
+    uuid id PK
+    uuid user_id FK
+    uuid badge_id FK
+    timestamp awarded_at
+    text awarded_reason
+  }
+`);
+document.getElementById('erd').innerHTML = svg;
+document.querySelectorAll('#erd svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd svg.erDiagram .row-rect-odd path, #erd svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
