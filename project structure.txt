@@ -1,0 +1,15 @@
+SkillBridge/
+├── services/
+│   ├── user-service/
+│   ├── matching-service/
+│   ├── session-service/
+│   └── quiz-service/
+├── frontend/
+├── backend/
+├── k8s/
+│   ├── user-service.yaml
+│   ├── matching-service.yaml
+│   ├── session-service.yaml
+│   └── quiz-service.yaml
+├── .gitignore
+└── README.md
