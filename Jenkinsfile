@@ -112,7 +112,7 @@ pipeline {
                         }
                         // Verify rollout
                         for (svc in services) {
-                            sh "kubectl rollout status deployment/${svc} --timeout=120s"
+                            sh "kubectl rollout status deployment/${svc} --timeout=300s"
                         }
                     }
                 }
