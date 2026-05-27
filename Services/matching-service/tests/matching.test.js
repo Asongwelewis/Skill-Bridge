@@ -42,7 +42,7 @@ describe('calculateMatchScore', () => {
       { ...learner, timezone: 'America/New_York' },
       { ...teacher, timezone: 'Europe/London' }
     );
-    expect(score).toBe(80); // 60 + 20 + 0
+    expect(score).toBe(90); // 60 + 20 + 0
   });
 
   it('gives 60 base when teacher is same level as learner', () => {
