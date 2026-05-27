@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: session-service
-          image: your-dockerhub-username/skillbridge-session-service:latest
+          image: nahnahsylvestre/skillbridge-session-service:latest
           ports:
             - containerPort: 3003
           env:

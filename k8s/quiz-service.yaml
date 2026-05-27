@@ -1,0 +1,92 @@
+---
+# kubectl create secret generic quiz-service-secret \
+#   --from-literal=SUPABASE_URL=https://tulwescncreiuclmfafv.supabase.co \
+#   --from-literal=SUPABASE_SECRET_KEY=your_secret_key_here \
+#   --from-literal=ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quiz-service
+  namespace: default
+  labels:
+    app: quiz-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quiz-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: quiz-service
+    spec:
+      containers:
+        - name: quiz-service
+          image: nahnahsylvestre/skillbridge-quiz-service:latest
+          ports:
+            - containerPort: 3004
+          env:
+            - name: PORT
+              value: "3004"
+            - name: NODE_ENV
+              value: "production"
+            - name: KAFKA_BROKER
+              value: "skillbridge-kafka:9092"
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: quiz-service-secret
+                  key: SUPABASE_URL
+            - name: SUPABASE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: quiz-service-secret
+                  key: SUPABASE_SECRET_KEY
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: quiz-service-secret
+                  key: GROQ_API_KEY
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quiz-service
+  namespace: default
+  labels:
+    app: quiz-service
+spec:
+  selector:
+    app: quiz-service
+  ports:
+    - protocol: TCP
+      port: 3004
+      targetPort: 3004
+  type: ClusterIP

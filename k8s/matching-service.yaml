@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: matching-service
-          image: your-dockerhub-username/skillbridge-matching-service:latest
+          image: nahnahsylvestre/skillbridge-matching-service:latest
           ports:
             - containerPort: 3002
           env:

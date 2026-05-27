@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: your-dockerhub-username/skillbridge-user-service:latest
+          image: nahnahsylvestre/skillbridge-user-service:latest
           ports:
             - containerPort: 3001
           env:
