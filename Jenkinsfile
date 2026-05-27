@@ -21,59 +21,63 @@ pipeline {
 
         // ── Stage 2: Install & Test all services ──────────
         stage('Test') {
-            parallel {
-                stage('Test user-service') {
-                    steps {
-                        dir('services/user-service') {
-                            sh 'npm ci'
-                            sh 'npm test -- --coverage --passWithNoTests'
-                        }
-                    }
-                }
-                stage('Test matching-service') {
-                    steps {
-                        dir('services/matching-service') {
-                            sh 'npm ci'
-                            sh 'npm test -- --coverage --passWithNoTests'
-                        }
-                    }
-                }
-                stage('Test session-service') {
-                    steps {
-                        dir('services/session-service') {
-                            sh 'npm ci'
-                            sh 'npm test -- --coverage --passWithNoTests'
-                        }
-                    }
-                }
-                stage('Test quiz-service') {
-                    steps {
-                        dir('services/quiz-service') {
-                            sh 'npm ci'
-                            sh 'npm test -- --coverage --passWithNoTests'
-                        }
-                    }
+    parallel {
+        stage('Test user-service') {
+            steps {
+                dir('Services/user-service') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm ci'
+                    sh 'npm test -- --coverage --passWithNoTests'
                 }
             }
         }
+        stage('Test matching-service') {
+            steps {
+                dir('Services/matching-service') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm ci'
+                    sh 'npm test -- --coverage --passWithNoTests'
+                }
+            }
+        }
+        stage('Test session-service') {
+            steps {
+                dir('Services/session-service') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm ci'
+                    sh 'npm test -- --coverage --passWithNoTests'
+                }
+            }
+        }
+        stage('Test quiz-service') {
+            steps {
+                dir('services/quiz-service') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm ci'
+                    sh 'npm test -- --coverage --passWithNoTests'
+                }
+            }
+        }
+    }
+}
 
         // ── Stage 3: Build Docker images ──────────────────
         stage('Build') {
-            steps {
-                script {
-                    def services = ['user-service', 'matching-service', 'session-service', 'quiz-service']
-                    for (svc in services) {
-                        echo "Building ${svc}..."
-                        sh """
-                            docker build \
-                                -t ${DOCKERHUB_USER}/skillbridge-${svc}:${BUILD_NUMBER} \
-                                -t ${DOCKERHUB_USER}/skillbridge-${svc}:latest \
-                                services/${svc}
-                        """
-                    }
-                }
+    steps {
+        script {
+            def services = ['user-service', 'matching-service', 'session-service', 'quiz-service']
+            for (svc in services) {
+                echo "Building ${svc}..."
+                sh """
+                    docker build \
+                        -t ${DOCKERHUB_USER}/skillbridge-${svc}:${BUILD_NUMBER} \
+                        -t ${DOCKERHUB_USER}/skillbridge-${svc}:latest \
+                        Services/${svc}
+                """
             }
         }
+    }
+}
 
         // ── Stage 4: Push to Docker Hub ───────────────────
         stage('Push') {
