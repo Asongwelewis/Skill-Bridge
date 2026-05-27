@@ -64,7 +64,7 @@ describe('GET /health', () => {
 
 describe('GET /api/notifications/me', () => {
   it('returns 401 without token', async () => {
-    const res = await request(app).get('/api/notifications/me');
+    const res = await request(app).get('/api/notifications');
     expect(res.status).toBe(401);
   });
 
@@ -76,7 +76,7 @@ describe('GET /api/notifications/me', () => {
       rows: [{ id: 'notif-1', title: 'Test', message: 'Hello', read: false }]
     });
     const res = await request(app)
-      .get('/api/notifications/me')
+      .get('/api/notifications')
       .set('Authorization', 'Bearer valid-token');
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
