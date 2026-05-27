@@ -51,7 +51,7 @@ pipeline {
         }
         stage('Test quiz-service') {
             steps {
-                dir('services/quiz-service') {
+                dir('Services/quiz-service') {
                     sh 'rm -rf node_modules'
                     sh 'npm ci'
                     sh 'npm test -- --coverage --passWithNoTests'
