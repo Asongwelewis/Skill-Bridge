@@ -6,7 +6,7 @@ pipeline {
         DOCKERHUB_CREDS   = credentials('dockerhub-credentials')
         KUBECONFIG_CREDS  = credentials('kubeconfig')
         SUPABASE_URL      = 'https://tulwescncreiuclmfafv.supabase.co'
-        SERVICES          = 'user-service matching-service session-service quiz-service'
+        SERVICES          = 'user-service matching-service session-service quiz-service notification-service'
     }
 
     stages {
@@ -58,6 +58,15 @@ pipeline {
                 }
             }
         }
+        stage('Test notification-service') {
+            steps {
+                dir('Services/notification-service') {
+                    sh 'rm -rf node_modules'
+                    sh 'npm ci'
+                    sh 'npm test -- --coverage --passWithNoTests'
+                }
+            }
+        }
     }
 }
 
@@ -65,7 +74,7 @@ pipeline {
         stage('Build') {
     steps {
         script {
-            def services = ['user-service', 'matching-service', 'session-service', 'quiz-service']
+            def services = ['user-service', 'matching-service', 'session-service', 'quiz-service', 'notification-service']
             for (svc in services) {
                 echo "Building ${svc}..."
                 sh """
@@ -84,7 +93,7 @@ pipeline {
             steps {
                 script {
                     sh "echo ${DOCKERHUB_CREDS_PSW} | docker login -u ${DOCKERHUB_CREDS_USR} --password-stdin"
-                    def services = ['user-service', 'matching-service', 'session-service', 'quiz-service']
+                    def services = ['user-service', 'matching-service', 'session-service', 'quiz-service', 'notification-service']
                     for (svc in services) {
                         echo "Pushing ${svc}..."
                         sh "docker push ${DOCKERHUB_USER}/skillbridge-${svc}:${BUILD_NUMBER}"
@@ -100,7 +109,7 @@ pipeline {
                 script {
                     // Write kubeconfig from Jenkins credentials
                     withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                        def services = ['user-service', 'matching-service', 'session-service', 'quiz-service']
+                        def services = ['user-service', 'matching-service', 'session-service', 'quiz-service', 'notification-service']
                         for (svc in services) {
                             echo "Deploying ${svc} to K8s..."
                             sh """

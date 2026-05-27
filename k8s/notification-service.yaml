@@ -1,0 +1,93 @@
+---
+# kubectl create secret generic notification-service-secret \
+#   --from-literal=SUPABASE_URL=https://tulwescncreiuclmfafv.supabase.co \
+#   --from-literal=SUPABASE_SECRET_KEY=your_secret_key_here
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: default
+  labels:
+    app: notification-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: nahnahsylvestre/skillbridge-notification-service:latest
+          ports:
+            - containerPort: 3005
+          env:
+            - name: PORT
+              value: "3005"
+            - name: NODE_ENV
+              value: "production"
+            - name: KAFKA_BROKER
+              value: "skillbridge-kafka:9092"
+            - name: NOTIFICATION_DB_HOST
+              value: "notification-db"
+            - name: NOTIFICATION_DB_PORT
+              value: "5432"
+            - name: NOTIFICATION_DB_NAME
+              value: "notificationdb"
+            - name: NOTIFICATION_DB_USER
+              value: "notification_user"
+            - name: NOTIFICATION_DB_PASSWORD
+              value: "notification_pass_2026"
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secret
+                  key: SUPABASE_URL
+            - name: SUPABASE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secret
+                  key: SUPABASE_SECRET_KEY
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: default
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - protocol: TCP
+      port: 3005
+      targetPort: 3005
+  type: ClusterIP
