@@ -1,8 +1,8 @@
-const { Kafka }        = require('kafkajs');
-const supabase         = require('../supabaseClient');
-const { generateQuiz } = require('../ai/quizGenerator');
+const { Kafka }           = require('kafkajs');
+const supabase            = require('../supabaseClient');
+const GenerateQuizCommand = require('../commands/GenerateQuizCommand');
 
-const kafka    = new Kafka({
+const kafka = new Kafka({
   clientId: 'quiz-service',
   brokers:  [process.env.KAFKA_BROKER || 'skillbridge-kafka:9092']
 });
@@ -36,36 +36,15 @@ async function startKafkaConsumer() {
         const skillName     = match.skills.name;
         const skillCategory = match.skills.category;
 
-        // 2. Call Claude AI to generate quiz questions
-        console.log(`Generating AI quiz for skill: ${skillName}`);
-        const quizData = await generateQuiz(skillName, skillCategory, 5);
+        // 2 & 3. Use GenerateQuizCommand (CQRS command side)
+        const command = new GenerateQuizCommand({
+          sessionId,
+          matchId,
+          skillName,
+          skillCategory
+        });
 
-        // 3. Save quiz to database
-        const { data: quiz, error: quizError } = await supabase
-          .from('quizzes')
-          .insert({
-            session_id:    sessionId,
-            title:         quizData.title,
-            status:        'published',
-            passing_score: 70
-          })
-          .select()
-          .single();
-
-        if (quizError) throw new Error(quizError.message);
-
-        // 4. Save questions
-        const questions = quizData.questions.map((q, index) => ({
-          quiz_id:        quiz.id,
-          question_text:  q.question_text,
-          options:        q.options,
-          correct_answer: q.correct_answer,
-          order_index:    index
-        }));
-
-        await supabase.from('quiz_questions').insert(questions);
-
-        console.log(`Quiz created: ${quiz.id} with ${questions.length} questions for session ${sessionId}`);
+        await command.execute();
 
       } catch (err) {
         console.error('Quiz generation error:', err.message);
