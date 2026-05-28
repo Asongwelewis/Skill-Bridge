@@ -16,6 +16,13 @@ jest.mock('../src/supabaseClient', () => ({
   rpc: jest.fn()
 }));
 
+// Add this after the supabase mock
+jest.mock('../src/cache/redisClient', () => ({
+  getCache:    jest.fn().mockResolvedValue(null),  // always cache miss in tests
+  setCache:    jest.fn().mockResolvedValue(undefined),
+  deleteCache: jest.fn().mockResolvedValue(undefined)
+}));
+
 const supabase = require('../src/supabaseClient');
 
 describe('GET /health', () => {
