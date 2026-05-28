@@ -1,0 +1,32 @@
+---
+- name: Deploy Prometheus + Grafana
+  hosts: skillbridge
+  become: true
+  tasks:
+    - name: Add Prometheus Helm repo
+      shell: |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+
+    - name: Install kube-prometheus-stack (skip if exists)
+      shell: >
+        helm install monitoring prometheus-community/kube-prometheus-stack
+        --namespace monitoring --create-namespace
+        --set grafana.adminPassword='SkillBridge2026!'
+        --set alertmanager.enabled=true
+      register: monitoring_result
+      failed_when: monitoring_result.rc != 0 and 'cannot re-use a name' not in monitoring_result.stderr and 'exists' not in monitoring_result.stderr
+      changed_when: "'STATUS: deployed' in monitoring_result.stdout"
+
+    - name: Expose Grafana via NodePort
+      shell: >
+        kubectl patch svc monitoring-grafana -n monitoring
+        -p '{"spec":{"type":"NodePort","ports":[{"port":80,"nodePort":30030}]}}'
+      register: grafana_patch
+      failed_when: false
+
+    - name: Open firewall port 30030
+      ufw:
+        rule: allow
+        port: '30030'
+        proto: tcp

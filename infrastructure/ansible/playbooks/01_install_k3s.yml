@@ -1,0 +1,37 @@
+---
+- name: Install K3s Kubernetes
+  hosts: skillbridge
+  become: true
+  tasks:
+    - name: Install K3s
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+    - name: Set kubeconfig permissions
+      file:
+        path: /etc/rancher/k3s/k3s.yaml
+        mode: '0644'
+    - name: Copy kubeconfig to home
+      shell: mkdir -p ~/.kube && cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+    - name: Install Helm
+      shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+    - name: Add bitnami repo
+      shell: helm repo add bitnami https://charts.bitnami.com/bitnami && helm repo update
+    - name: Install Redis (skip if exists)
+      shell: helm install skillbridge-redis bitnami/redis --set architecture=standalone --set auth.enabled=false
+      register: redis_result
+      failed_when: redis_result.rc != 0 and 'cannot re-use a name' not in redis_result.stderr and 'exists' not in redis_result.stderr
+    - name: Install Kafka (skip if exists)
+      shell: helm install skillbridge-kafka bitnami/kafka --set kraft.enabled=true --set zookeeper.enabled=false
+      register: kafka_result
+      failed_when: kafka_result.rc != 0 and 'cannot re-use a name' not in kafka_result.stderr and 'exists' not in kafka_result.stderr
+    - name: Install Elasticsearch (skip if exists)
+      shell: >
+        helm install skillbridge-elastic bitnami/elasticsearch
+        --set master.replicaCount=1 --set data.replicaCount=1
+        --set global.storageClass=local-path
+        --set master.resources.requests.memory=1Gi --set master.resources.limits.memory=2Gi
+      register: elastic_result
+      failed_when: elastic_result.rc != 0 and 'cannot re-use a name' not in elastic_result.stderr and 'exists' not in elastic_result.stderr
