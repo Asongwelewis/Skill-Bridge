@@ -7,9 +7,10 @@
       shell: |
         helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
         helm repo update
+      changed_when: false
     - name: Install NGINX Ingress Controller
       shell: |
-        helm install nginx-ingress ingress-nginx/ingress-nginx \
+        helm upgrade --install nginx-ingress ingress-nginx/ingress-nginx \
           --namespace ingress-nginx --create-namespace \
           --set controller.service.type=NodePort \
           --set controller.service.nodePorts.http=30080 \

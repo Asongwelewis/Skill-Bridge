@@ -1,0 +1,7 @@
+# Terraform variables for SkillBridge infrastructure
+# Copy this file to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to version control
+
+do_token      = "dop_v1_your_digitalocean_api_token_here"
+ssh_fingerprint = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+admin_cidrs   = ["203.0.113.5/32", "198.51.100.64/26"]

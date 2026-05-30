@@ -2,27 +2,46 @@
 - name: Install K3s Kubernetes
   hosts: skillbridge
   become: true
+  vars:
+    redis_password: "{{ lookup('env', 'REDIS_PASSWORD') }}"
   tasks:
+    - name: Ensure Redis password is provided
+      assert:
+        that:
+          - redis_password | length > 0
+        fail_msg: Set REDIS_PASSWORD before running this playbook.
+
     - name: Install K3s
       shell: curl -sfL https://get.k3s.io | sh -
       args:
         creates: /usr/local/bin/k3s
-    - name: Set kubeconfig permissions
+    - name: Ensure kubeconfig directory exists
       file:
-        path: /etc/rancher/k3s/k3s.yaml
-        mode: '0644'
-    - name: Copy kubeconfig to home
-      shell: mkdir -p ~/.kube && cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+        path: /root/.kube
+        state: directory
+        mode: '0700'
+    - name: Copy kubeconfig to root home
+      copy:
+        remote_src: true
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /root/.kube/config
+        mode: '0600'
     - name: Install Helm
       shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       args:
         creates: /usr/local/bin/helm
     - name: Add bitnami repo
       shell: helm repo add bitnami https://charts.bitnami.com/bitnami && helm repo update
+      changed_when: false
     - name: Install Redis (skip if exists)
-      shell: helm install skillbridge-redis bitnami/redis --set architecture=standalone --set auth.enabled=false
+      shell: >
+        helm install skillbridge-redis bitnami/redis
+        --set architecture=standalone
+        --set auth.enabled=true
+        --set auth.password={{ redis_password | quote }}
       register: redis_result
       failed_when: redis_result.rc != 0 and 'cannot re-use a name' not in redis_result.stderr and 'exists' not in redis_result.stderr
+      no_log: true
     - name: Install Kafka (skip if exists)
       shell: helm install skillbridge-kafka bitnami/kafka --set kraft.enabled=true --set zookeeper.enabled=false
       register: kafka_result

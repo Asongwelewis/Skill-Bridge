@@ -23,13 +23,13 @@ resource "digitalocean_firewall" "skillbridge_fw" {
   inbound_rule {
     protocol         = "tcp"
     port_range       = "8080"
-    source_addresses = ["0.0.0.0/0"]
+    source_addresses = var.admin_cidrs
   } # Jenkins
 
   inbound_rule {
     protocol         = "tcp"
     port_range       = "6443"
-    source_addresses = ["0.0.0.0/0"]
+    source_addresses = var.admin_cidrs
   } # K3s API
 
   outbound_rule {
