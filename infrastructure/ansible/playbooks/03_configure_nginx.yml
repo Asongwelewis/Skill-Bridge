@@ -1,0 +1,23 @@
+---
+- name: Install NGINX Ingress
+  hosts: skillbridge
+  become: true
+  tasks:
+    - name: Add ingress-nginx Helm repo
+      shell: |
+        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+        helm repo update
+      changed_when: false
+    - name: Install NGINX Ingress Controller
+      shell: |
+        helm upgrade --install nginx-ingress ingress-nginx/ingress-nginx \
+          --namespace ingress-nginx --create-namespace \
+          --set controller.service.type=NodePort \
+          --set controller.service.nodePorts.http=30080 \
+          --set controller.service.nodePorts.https=30443
+    - name: Open firewall ports
+      ufw: rule=allow port={{ item }} proto=tcp
+      loop: ['30080', '30443']
+    - name: Wait for NGINX pod
+      shell: kubectl wait --namespace ingress-nginx --for=condition=ready pod
+        --selector=app.kubernetes.io/component=controller --timeout=120s

@@ -1,0 +1,48 @@
+---
+- name: Deploy Prometheus + Grafana
+  hosts: skillbridge
+  become: true
+  vars:
+    grafana_admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') }}"
+  tasks:
+    - name: Ensure Grafana admin password is provided
+      assert:
+        that:
+          - grafana_admin_password | length > 0
+        fail_msg: Set GRAFANA_ADMIN_PASSWORD before running this playbook.
+
+    - name: Add Prometheus Helm repo
+      shell: |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+      changed_when: false
+
+    - name: Install kube-prometheus-stack (skip if exists)
+      shell: >
+        helm upgrade --install monitoring prometheus-community/kube-prometheus-stack
+        --namespace monitoring --create-namespace
+        --set-string grafana.adminPassword={{ grafana_admin_password | quote }}
+        --set alertmanager.enabled=true
+      register: monitoring_result
+      failed_when: monitoring_result.rc != 0 and 'cannot re-use a name' not in monitoring_result.stderr and 'exists' not in monitoring_result.stderr
+      changed_when: "'has been installed' in monitoring_result.stdout or 'has been upgraded' in monitoring_result.stdout"
+      no_log: true
+
+    - name: Expose Grafana via NodePort
+      shell: >
+        kubectl patch svc monitoring-grafana -n monitoring
+        -p '{"spec":{"type":"NodePort","ports":[{"port":80,"nodePort":30030}]}}'
+      register: grafana_patch
+      changed_when: "'patched' in grafana_patch.stdout or 'configured' in grafana_patch.stdout"
+
+    - name: Verify Grafana is exposed as a NodePort
+      shell: kubectl get svc monitoring-grafana -n monitoring -o jsonpath='{.spec.type}'
+      register: grafana_service_type
+      changed_when: false
+      failed_when: grafana_service_type.stdout != "NodePort"
+
+    - name: Open firewall port 30030
+      ufw:
+        rule: allow
+        port: '30030'
+        proto: tcp

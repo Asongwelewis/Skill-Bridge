@@ -1,0 +1,58 @@
+---
+- name: Install Jenkins
+  hosts: skillbridge
+  become: true
+  tasks:
+    - name: Install Java 17 and prerequisites
+      apt:
+        name:
+          - openjdk-17-jre
+          - fontconfig
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Create apt keyrings directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Jenkins signing key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /etc/apt/keyrings/jenkins-keyring.asc
+        mode: '0644'
+
+    - name: Add Jenkins apt repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        filename: jenkins
+        state: present
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Jenkins
+      systemd:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Open firewall port 8080
+      ufw:
+        rule: allow
+        port: '8080'
+        proto: tcp
+
+    - name: Get initial Jenkins admin password (only exists on first run)
+      shell: cat /var/lib/jenkins/secrets/initialAdminPassword 2>/dev/null || echo "Jenkins already configured - no initial password needed"
+      register: jenkins_pass
+      changed_when: false
+
+    - name: Display Jenkins status
+      debug:
+        msg: "{{ jenkins_pass.stdout }}"
