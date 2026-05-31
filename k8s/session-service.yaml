@@ -1,7 +1,10 @@
 ---
 # kubectl create secret generic session-service-secret \
 #   --from-literal=SUPABASE_URL=https://tulwescncreiuclmfafv.supabase.co \
-#   --from-literal=SUPABASE_SECRET_KEY=your_secret_key_here
+#   --from-literal=SUPABASE_SECRET_KEY=your_secret_key_here \
+#   --from-literal=KAFKA_BROKER=skillbridge-kafka:9092 \
+#   --from-literal=ELASTIC_URL=https://elasticsearch-master:9200 \
+#   --from-literal=ELASTIC_PASSWORD=n5ulqqPvt2bZki98
 
 ---
 apiVersion: apps/v1
@@ -48,6 +51,16 @@ spec:
                 secretKeyRef:
                   name: session-service-secret
                   key: SUPABASE_SECRET_KEY
+            - name: ELASTIC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: session-service-secret
+                  key: ELASTIC_URL
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: session-service-secret
+                  key: ELASTIC_PASSWORD
           resources:
             requests:
               memory: "128Mi"

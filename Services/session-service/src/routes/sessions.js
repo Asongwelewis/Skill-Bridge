@@ -27,4 +27,19 @@ router.patch('/:id/end',      authenticate, endSession);
 // DELETE /api/sessions/:id          — cancel
 router.delete('/:id',         authenticate, cancelSession);
 
+const { searchTranscripts } = require('../elastic/elasticClient');
+
+// GET /api/sessions/search?q=python
+router.get('/search', authenticate, async (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.status(400).json({ error: 'Query parameter q is required' });
+
+  const results = await searchTranscripts(q, req.user.id);
+
+  if (results === null) {
+    return res.status(503).json({ error: 'Search temporarily unavailable' });
+  }
+
+  res.json({ query: q, count: results.length, results });
+});
 module.exports = router;
