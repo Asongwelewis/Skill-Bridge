@@ -27,13 +27,13 @@
 [![Grafana](https://img.shields.io/badge/Grafana-Monitoring-F46800?style=flat-square&logo=grafana)](https://grafana.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[🌐 Live Demo](http://skillbridge-sen3244.duckdns.org) · [📚 API Docs](#api-documentation) · [🏗️ Architecture](#architecture) · [🚀 Deploy](#deployment)
+[ Live Demo](http://skillbridge-sen3244.duckdns.org) · [ API Docs](#api-documentation) · [ Architecture](#architecture) · [ Deploy](#deployment)
 
 </div>
 
 ---
 
-## 📖 Table of Contents
+##  Table of Contents
 
 - [What is SkillBridge?](#-what-is-skillbridge)
 - [The Learning Flow](#-the-learning-flow)
@@ -50,7 +50,7 @@
 
 ---
 
-## 🌉 What is SkillBridge?
+##  What is SkillBridge?
 
 SkillBridge is a **cloud-native peer-to-peer learning platform** that eliminates the barrier between people who have knowledge and people who need it.
 
@@ -60,23 +60,23 @@ SkillBridge is a **cloud-native peer-to-peer learning platform** that eliminates
 
 | Feature | Description |
 |---|---|
-| 🎯 **Smart Matching** | Algorithm pairs learners with teachers based on skill, proficiency gap, and timezone |
-| 📹 **Live Video Sessions** | WebRTC-powered peer-to-peer video calls — no third-party service needed |
-| 🤖 **AI-Generated Quizzes** | Groq/Llama 3.3 generates custom MCQs after every session |
-| 🏅 **Badge & XP System** | Reputation system rewards teaching and learning milestones |
-| 🔍 **Session Search** | Elasticsearch indexes transcripts for full-text search |
-| 🔔 **Real-time Notifications** | Supabase Realtime pushes live notifications to the browser |
+|  **Smart Matching** | Algorithm pairs learners with teachers based on skill, proficiency gap, and timezone |
+|  **Live Video Sessions** | WebRTC-powered peer-to-peer video calls — no third-party service needed |
+|  **AI-Generated Quizzes** | Groq/Llama 3.3 generates custom MCQs after every session |
+|  **Badge & XP System** | Reputation system rewards teaching and learning milestones |
+|  **Session Search** | Elasticsearch indexes transcripts for full-text search |
+|  **Real-time Notifications** | Supabase Realtime pushes live notifications to the browser |
 
 ---
 
-## 🔄 The Learning Flow
+##  The Learning Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        SKILLBRIDGE FLOW                              │
 └─────────────────────────────────────────────────────────────────────┘
 
-  👤 USER SIGNS UP          🎯 GETS MATCHED           📹 LIVE SESSION
+   USER SIGNS UP            GETS MATCHED              LIVE SESSION
   ┌─────────────┐          ┌─────────────┐           ┌─────────────┐
   │ • Register  │          │ • Algorithm │           │ • WebRTC    │
   │ • Add skills│  ──────► │   scores    │  ──────►  │   video     │
@@ -86,7 +86,7 @@ SkillBridge is a **cloud-native peer-to-peer learning platform** that eliminates
   └─────────────┘          └─────────────┘                  │
                                                              │ session.completed
                                                              ▼ (Kafka event)
-  🏅 BADGE AWARDED          📊 QUIZ RESULTS           🤖 AI QUIZ
+   BADGE AWARDED           QUIZ RESULTS              AI QUIZ
   ┌─────────────┐          ┌─────────────┐           ┌─────────────┐
   │ • XP +100   │          │ • Score %   │           │ • Groq API  │
   │ • Badge     │  ◄─────  │ • Pass/Fail │  ◄──────  │ • 5 MCQs   │
@@ -98,42 +98,42 @@ SkillBridge is a **cloud-native peer-to-peer learning platform** that eliminates
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 SkillBridge uses a **hybrid microservices architecture** — 5 custom Node.js services backed by Supabase managed services, all running on Kubernetes.
 
 ```mermaid
 graph TB
-    subgraph CLIENT["🖥️ Client Layer"]
+    subgraph CLIENT[" Client Layer"]
         BROWSER["React 18 + Vite\nTailwindCSS + WebRTC"]
     end
 
-    subgraph INGRESS["🌐 Ingress Layer"]
+    subgraph INGRESS[" Ingress Layer"]
         TRAEFIK["Traefik Ingress Controller\nSSL/TLS + Routing\nskillbridge-sen3244.duckdns.org"]
     end
 
-    subgraph SERVICES["⚙️ Microservices Layer (Kubernetes)"]
-        US["👤 User Service\n:3001\nProfiles · Skills · Badges"]
-        MS["🎯 Matching Service\n:3002\nAlgorithm · Kafka Consumer"]
-        SS["📹 Session Service\n:3003\nWebRTC · Elasticsearch"]
-        QS["🤖 Quiz Service\n:3004\nCQRS · Groq AI"]
-        NS["🔔 Notification Service\n:3005\nCircuit Breaker"]
+    subgraph SERVICES[" Microservices Layer (Kubernetes)"]
+        US[" User Service\n:3001\nProfiles · Skills · Badges"]
+        MS[" Matching Service\n:3002\nAlgorithm · Kafka Consumer"]
+        SS[" Session Service\n:3003\nWebRTC · Elasticsearch"]
+        QS[" Quiz Service\n:3004\nCQRS · Groq AI"]
+        NS[" Notification Service\n:3005\nCircuit Breaker"]
     end
 
-    subgraph INFRA["🗄️ Infrastructure Layer"]
+    subgraph INFRA[" Infrastructure Layer"]
         KAFKA["Apache Kafka\nKRaft Mode\nEvent Streaming"]
         REDIS["Redis\nProfile Caching\n< 1ms reads"]
         ELASTIC["Elasticsearch 8.5\nTranscript Search\nFull-text Index"]
         PG["PostgreSQL x4\nStatefulSets\nPer-service DBs"]
     end
 
-    subgraph MANAGED["☁️ Managed Services (Supabase)"]
+    subgraph MANAGED[" Managed Services (Supabase)"]
         AUTH["Supabase Auth\nJWT · OAuth"]
         SUPA_DB["Supabase PostgreSQL\nRLS · Realtime"]
         STORAGE["Supabase Storage\nAvatars · Files"]
     end
 
-    subgraph OBSERVABILITY["📊 Observability"]
+    subgraph OBSERVABILITY[" Observability"]
         PROM["Prometheus\nMetrics Scraping"]
         GRAFANA["Grafana\nDashboards · Alerts"]
     end
@@ -154,7 +154,7 @@ graph TB
 
 ---
 
-## ⚙️ Microservices
+##  Microservices
 
 ```mermaid
 graph LR
@@ -207,7 +207,7 @@ graph LR
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ```mermaid
 erDiagram
@@ -298,7 +298,7 @@ erDiagram
 
 ---
 
-## 🎨 Design Patterns
+##  Design Patterns
 
 ### Repository Pattern — Session Service
 
@@ -343,14 +343,14 @@ stateDiagram-v2
     HALF_OPEN --> CLOSED : success >= threshold (2)
     HALF_OPEN --> OPEN : any failure
 
-    CLOSED : ✅ Requests flow normally
-    OPEN : ❌ Requests fail immediately
-    HALF_OPEN : 🔄 One test request allowed
+    CLOSED :  Requests flow normally
+    OPEN :  Requests fail immediately
+    HALF_OPEN :  One test request allowed
 ```
 
 ---
 
-## 🏗️ Infrastructure
+##  Infrastructure
 
 ```mermaid
 graph TD
@@ -375,7 +375,7 @@ graph TD
         end
     end
 
-    INTERNET["🌐 Internet"] --> TRAEFIK_K
+    INTERNET[" Internet"] --> TRAEFIK_K
     TRAEFIK_K --> SVC
     SVC --> DB & REDIS_K & KAFKA_K & ELASTIC_K
     CERTMGR --> TRAEFIK_K
@@ -393,11 +393,11 @@ graph TD
 
 ---
 
-## 🔄 CI/CD Pipeline
+##  CI/CD Pipeline
 
 ```mermaid
 graph LR
-    DEV["👨‍💻 Developer\ngit push"] --> GH["GitHub\nmain branch"]
+    DEV[" Developer\ngit push"] --> GH["GitHub\nmain branch"]
     GH --> JENKINS["Jenkins\nBuild Now"]
 
     subgraph PIPELINE["Jenkins 5-Stage Pipeline"]
@@ -410,12 +410,12 @@ graph LR
 
     JENKINS --> C
     D --> K8S["Kubernetes\nZero-downtime\nrollout"]
-    K8S --> LIVE["🌐 Live at\nskillbridge-sen3244\n.duckdns.org"]
+    K8S --> LIVE[" Live at\nskillbridge-sen3244\n.duckdns.org"]
 ```
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Backend
 | Technology | Purpose |
@@ -455,7 +455,7 @@ graph LR
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -547,7 +547,7 @@ kubectl apply -f k8s/
 
 ---
 
-## 📚 API Documentation
+##  API Documentation
 
 All services are accessible via the Traefik ingress at `http://skillbridge-sen3244.duckdns.org`
 
@@ -600,7 +600,7 @@ All services are accessible via the Traefik ingress at `http://skillbridge-sen32
 
 ---
 
-## 👥 Team
+##  Team
 
 | Role | Responsibility |
 |---|---|
