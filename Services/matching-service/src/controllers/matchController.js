@@ -1,5 +1,6 @@
 const supabase        = require('../supabaseClient');
 const { findMatches } = require('../algorithm/matcher');
+const redis           = require('../redis');
 
 // POST /api/matching/run/:userId — run matching for a specific user
 async function runMatchingForUser(req, res) {
@@ -76,6 +77,10 @@ async function getUserMatches(req, res) {
 // GET /api/matching/matches/me — get matches for authenticated user
 async function getMyMatches(req, res) {
   const { status } = req.query;
+  const cacheKey = `matches:${req.user.id}:${status || 'all'}`;
+
+  const cached = await redis.get(cacheKey);
+  if (cached) return res.json({ matches: JSON.parse(cached), fromCache: true });
 
   let query = supabase
     .from('matches')
@@ -92,7 +97,9 @@ async function getMyMatches(req, res) {
 
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+
+  await redis.setex(cacheKey, 300, JSON.stringify(data)); // 5 min TTL
+  res.json({ matches: data });
 }
 
 // PATCH /api/matching/matches/:matchId — accept or decline a match
@@ -126,6 +133,15 @@ async function updateMatchStatus(req, res) {
     .single();
 
   if (error) return res.status(400).json({ error: error.message });
+
+  // Invalidate cached match lists for both participants
+  await Promise.all([
+    redis.del(`matches:${match.learner_id}:all`),
+    redis.del(`matches:${match.learner_id}:${status}`),
+    redis.del(`matches:${match.teacher_id}:all`),
+    redis.del(`matches:${match.teacher_id}:${status}`),
+  ]);
+
   res.json(data);
 }
 

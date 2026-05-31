@@ -8,6 +8,7 @@
  */
 const supabase = require('../supabaseClient');
 const { v4: uuidv4 } = require('uuid');
+const redis = require('../redis');
 
 class SessionRepository {
 
@@ -15,6 +16,9 @@ class SessionRepository {
    * Find a session by ID
    */
   async findById(id) {
+    const cached = await redis.get(`session:${id}`);
+    if (cached) return JSON.parse(cached);
+
     const { data, error } = await supabase
       .from('sessions')
       .select(`
@@ -29,6 +33,7 @@ class SessionRepository {
       .single();
 
     if (error) throw new Error(error.message);
+    if (data) await redis.setex(`session:${id}`, 300, JSON.stringify(data)); // 5 min TTL
     return data;
   }
 
@@ -92,6 +97,8 @@ class SessionRepository {
    * Update session status
    */
   async updateStatus(id, status, extraFields = {}) {
+    await redis.del(`session:${id}`);
+
     const { data, error } = await supabase
       .from('sessions')
       .update({ status, ...extraFields })
