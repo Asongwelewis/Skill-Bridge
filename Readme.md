@@ -1,421 +1,222 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/SkillBridge-Peer%20Learning%20Platform-4F46E5?style=for-the-badge&logo=lightning&logoColor=white" alt="SkillBridge"/>
+<!-- Hero banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=220&section=header&text=Skill-Bridge&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Bridge%20the%20knowledge%20gap%20%E2%80%94%20peer-to-peer,%20live,%20AI-powered&descAlignY=62&descAlign=50&descSize=14" />
 
-```
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║   ███████╗██╗  ██╗██╗██╗     ██╗     ██████╗ ██████╗ ██╗    ║
-║   ██╔════╝██║ ██╔╝██║██║     ██║     ██╔══██╗██╔══██╗██║    ║
-║   ███████╗█████╔╝ ██║██║     ██║     ██████╔╝██████╔╝██║    ║
-║   ╚════██║██╔═██╗ ██║██║     ██║     ██╔══██╗██╔══██╗██║    ║
-║   ███████║██║  ██╗██║███████╗███████╗██████╔╝██║  ██║██║    ║
-║   ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝    ║
-║                                                               ║
-║          B R I D G E   T H E   K N O W L E D G E   G A P    ║
-╚═══════════════════════════════════════════════════════════════╝
-```
+<br/>
 
-**A cloud-native peer learning platform where knowledge flows in every direction.**
+<!-- Animated typing intro -->
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1000&color=F58220&center=true&vCenter=true&width=700&lines=Cloud-native+peer-to-peer+learning+platform;Live+WebRTC+video+sessions+%E2%80%A2+AI-generated+quizzes;5+microservices+%E2%80%A2+Kafka+%E2%80%A2+Kubernetes+%E2%80%A2+Supabase)](https://git.io/typing-svg)
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://react.dev)
-[![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-K3s-326CE5?style=flat-square&logo=kubernetes)](https://k3s.io)
-[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com)
-[![Kafka](https://img.shields.io/badge/Apache-Kafka-231F20?style=flat-square&logo=apache-kafka)](https://kafka.apache.org)
-[![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?style=flat-square&logo=jenkins)](https://jenkins.io)
-[![Grafana](https://img.shields.io/badge/Grafana-Monitoring-F46800?style=flat-square&logo=grafana)](https://grafana.com)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+<br/>
 
-[ Live Demo](http://skillbridge-sen3244.duckdns.org) · [ API Docs](#api-documentation) · [ Architecture](#architecture) · [ Deploy](#deployment)
+<!-- Badges -->
+![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge&color=F58220)
+![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
+![Node](https://img.shields.io/badge/node-20+-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-K3s-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Made With Love](https://img.shields.io/badge/made_with-%E2%9D%A4%EF%B8%8F-F58220?style=for-the-badge)
+
+<br/>
+
+<!-- Quick links -->
+**[🌐 Live Demo](http://skillbridge-sen3244.duckdns.org)** • **[📖 API Docs](#-api-documentation)** • **[🏗 Architecture](#-architecture)** • **[🚀 Deploy](#-getting-started)**
+
+</div>
+
+<br/>
+
+<!-- Demo GIF placeholder -->
+<div align="center">
+
+> 📽️ **Demo preview** — drop your GIF here once recorded
+>
+> <img src="docs/demo.gif" alt="Skill-Bridge demo" width="800" onerror="this.style.display='none'"/>
+>
+> *Place a `demo.gif` in `/docs/` to replace this placeholder.*
 
 </div>
 
 ---
 
-##  Table of Contents
+## 📋 Table of Contents
 
-- [What is SkillBridge?](#-what-is-skillbridge)
-- [The Learning Flow](#-the-learning-flow)
-- [Architecture](#-architecture)
-- [Microservices](#-microservices)
-- [Database Schema](#-database-schema)
-- [Design Patterns](#-design-patterns)
-- [Infrastructure](#-infrastructure)
-- [CI/CD Pipeline](#-cicd-pipeline)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-- [API Documentation](#-api-documentation)
-- [Team](#-team)
+- [💡 What is Skill-Bridge?](#-what-is-skill-bridge)
+- [🌟 Features](#-features)
+- [🔄 The Learning Flow](#-the-learning-flow)
+- [🏗 Architecture](#-architecture)
+- [🛠 Tech Stack](#-tech-stack)
+- [🚀 Getting Started](#-getting-started)
+- [🧪 Running Tests](#-running-tests)
+- [☸️ Deploy to Kubernetes](#%EF%B8%8F-deploy-to-kubernetes)
+- [📖 API Documentation](#-api-documentation)
+- [🗺 Roadmap](#-roadmap)
+- [👥 Team](#-team)
+- [📄 License](#-license)
 
 ---
 
-##  What is SkillBridge?
-
-SkillBridge is a **cloud-native peer-to-peer learning platform** that eliminates the barrier between people who have knowledge and people who need it.
+## 💡 What is Skill-Bridge?
 
 > *"Every expert was once a beginner. Every beginner can become an expert."*
 
-**Core capabilities:**
+**Skill-Bridge** is a cloud-native, peer-to-peer learning platform that eliminates the barrier between people who *have* knowledge and people who *need* it.
 
-| Feature | Description |
-|---|---|
-|  **Smart Matching** | Algorithm pairs learners with teachers based on skill, proficiency gap, and timezone |
-|  **Live Video Sessions** | WebRTC-powered peer-to-peer video calls — no third-party service needed |
-|  **AI-Generated Quizzes** | Groq/Llama 3.3 generates custom MCQs after every session |
-|  **Badge & XP System** | Reputation system rewards teaching and learning milestones |
-|  **Session Search** | Elasticsearch indexes transcripts for full-text search |
-|  **Real-time Notifications** | Supabase Realtime pushes live notifications to the browser |
+You sign up, list skills you can teach and skills you want to learn, and our matching algorithm pairs you with someone whose strengths fill your gaps. You meet over WebRTC video, the session is recorded and transcribed, and at the end an AI-generated quiz verifies that learning actually happened — awarding XP, reputation badges, and unlocks.
 
 ---
 
-##  The Learning Flow
+## 🌟 Features
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        SKILLBRIDGE FLOW                              │
-└─────────────────────────────────────────────────────────────────────┘
+<table>
+<tr>
+<td width="50%" valign="top">
 
-   USER SIGNS UP            GETS MATCHED              LIVE SESSION
-  ┌─────────────┐          ┌─────────────┐           ┌─────────────┐
-  │ • Register  │          │ • Algorithm │           │ • WebRTC    │
-  │ • Add skills│  ──────► │   scores    │  ──────►  │   video     │
-  │ • Set role  │          │ • Top 5     │           │ • Real-time │
-  │   teach/    │          │   matches   │           │   audio     │
-  │   learn     │          │   returned  │           └──────┬──────┘
-  └─────────────┘          └─────────────┘                  │
-                                                             │ session.completed
-                                                             ▼ (Kafka event)
-   BADGE AWARDED           QUIZ RESULTS              AI QUIZ
-  ┌─────────────┐          ┌─────────────┐           ┌─────────────┐
-  │ • XP +100   │          │ • Score %   │           │ • Groq API  │
-  │ • Badge     │  ◄─────  │ • Pass/Fail │  ◄──────  │ • 5 MCQs   │
-  │   unlocked  │          │ • Correct   │           │ • Custom to │
-  │ • Profile   │          │   answers   │           │   skill     │
-  │   updated   │          │   revealed  │           │   taught    │
-  └─────────────┘          └─────────────┘           └─────────────┘
+### 🤝 Smart Peer Matching
+Skill-gap algorithm scores every potential pair on proficiency delta, skill overlap, and timezone. Returns top 5 matches.
+
+### 📹 Live WebRTC Video
+Peer-to-peer video calls. No Zoom, no Twilio, no middleman — your media stream goes browser-to-browser.
+
+### 🧠 AI-Generated Quizzes
+After every session, **Groq + Llama 3.3 70B** generates 5 custom MCQs tailored to what was actually taught.
+
+</td>
+<td width="50%" valign="top">
+
+### 🏅 Badges & XP
+Reputation system rewards both teaching and learning. Climb tiers, unlock badges, build a verifiable skill résumé.
+
+### 🔍 Searchable Transcripts
+Every session is transcribed and indexed in **Elasticsearch** for full-text search across your learning history.
+
+### 🔔 Real-time Notifications
+**Supabase Realtime** pushes match alerts, session reminders, and quiz results straight to your browser.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🔄 The Learning Flow
+
+```mermaid
+flowchart LR
+    A[👤 User signs up] --> B[Lists skills + role]
+    B --> C{Matching Algorithm}
+    C -->|Top 5 scored| D[🎯 Match offered]
+    D --> E[📹 Live WebRTC session]
+    E -->|session.completed event| F[Kafka Topic]
+    F --> G[🧠 Quiz Service]
+    G -->|Groq + Llama 3.3| H[5 MCQs generated]
+    H --> I[📝 Learner takes quiz]
+    I --> J[Score computed]
+    J --> K[🏅 XP + Badges awarded]
+    K --> L[👤 Profile updated]
+
+    style A fill:#F58220,stroke:#fff,color:#fff
+    style E fill:#1e90ff,stroke:#fff,color:#fff
+    style G fill:#9333ea,stroke:#fff,color:#fff
+    style K fill:#22c55e,stroke:#fff,color:#fff
 ```
 
 ---
 
-##  Architecture
+## 🏗 Architecture
 
-SkillBridge uses a **hybrid microservices architecture** — 5 custom Node.js services backed by Supabase managed services, all running on Kubernetes.
+Skill-Bridge uses a **hybrid microservices architecture** — 5 custom Node.js services backed by Supabase managed services, all running on K3s (Kubernetes).
 
 ```mermaid
 graph TB
-    subgraph CLIENT[" Client Layer"]
-        BROWSER["React 18 + Vite\nTailwindCSS + WebRTC"]
+    subgraph "Client Layer"
+        FE[React + Vite SPA]
     end
 
-    subgraph INGRESS[" Ingress Layer"]
-        TRAEFIK["Traefik Ingress Controller\nSSL/TLS + Routing\nskillbridge-sen3244.duckdns.org"]
+    subgraph "Edge"
+        TF[Traefik Ingress<br/>SSL via Let's Encrypt]
     end
 
-    subgraph SERVICES[" Microservices Layer (Kubernetes)"]
-        US[" User Service\n:3001\nProfiles · Skills · Badges"]
-        MS[" Matching Service\n:3002\nAlgorithm · Kafka Consumer"]
-        SS[" Session Service\n:3003\nWebRTC · Elasticsearch"]
-        QS[" Quiz Service\n:3004\nCQRS · Groq AI"]
-        NS[" Notification Service\n:3005\nCircuit Breaker"]
+    subgraph "Microservices"
+        US[User Service<br/>:3001]
+        MS[Matching Service<br/>:3002]
+        SS[Session Service<br/>:3003]
+        QS[Quiz Service<br/>:3004]
+        NS[Notification Service<br/>:3005]
     end
 
-    subgraph INFRA[" Infrastructure Layer"]
-        KAFKA["Apache Kafka\nKRaft Mode\nEvent Streaming"]
-        REDIS["Redis\nProfile Caching\n< 1ms reads"]
-        ELASTIC["Elasticsearch 8.5\nTranscript Search\nFull-text Index"]
-        PG["PostgreSQL x4\nStatefulSets\nPer-service DBs"]
+    subgraph "Messaging"
+        K[Apache Kafka<br/>KRaft mode]
     end
 
-    subgraph MANAGED[" Managed Services (Supabase)"]
-        AUTH["Supabase Auth\nJWT · OAuth"]
-        SUPA_DB["Supabase PostgreSQL\nRLS · Realtime"]
-        STORAGE["Supabase Storage\nAvatars · Files"]
+    subgraph "Data Layer"
+        SB[(Supabase<br/>Auth + Realtime + Storage)]
+        PG1[(PostgreSQL<br/>x4 StatefulSets)]
+        RD[(Redis<br/>Cache)]
+        ES[(Elasticsearch 8.5<br/>Transcripts)]
     end
 
-    subgraph OBSERVABILITY[" Observability"]
-        PROM["Prometheus\nMetrics Scraping"]
-        GRAFANA["Grafana\nDashboards · Alerts"]
+    subgraph "External"
+        GROQ[Groq API<br/>Llama 3.3 70B]
     end
 
-    BROWSER --> TRAEFIK
-    TRAEFIK --> US & MS & SS & QS & NS
-    US --> REDIS
-    US & MS --> SUPA_DB
-    SS --> ELASTIC
-    SS --> KAFKA
-    QS --> KAFKA
-    NS --> KAFKA
-    MS & SS & QS & NS --> PG
-    BROWSER --> AUTH
-    PROM --> SERVICES
-    PROM --> GRAFANA
+    FE --> TF
+    TF --> US & MS & SS & QS & NS
+    US <--> K
+    MS <--> K
+    SS <--> K
+    QS <--> K
+    NS <--> K
+    US --> SB & PG1 & RD
+    MS --> PG1
+    SS --> PG1 & ES
+    QS --> PG1 & GROQ
+    NS --> SB
+
+    style FE fill:#61dafb,color:#000
+    style TF fill:#f97316,color:#fff
+    style K fill:#000,color:#fff
+    style GROQ fill:#F55036,color:#fff
 ```
 
----
-
-##  Microservices
-
-```mermaid
-graph LR
-    subgraph "User Service :3001"
-        U1[GET /profiles/me]
-        U2[POST /skills/me]
-        U3[GET /badges/me]
-        REDIS_CACHE[(Redis Cache\n5min TTL)]
-        U1 --> REDIS_CACHE
-    end
-
-    subgraph "Matching Service :3002"
-        M1[POST /run/:userId]
-        M2[GET /matches/me]
-        M3[PATCH /matches/:id]
-        ALGO[Scoring Algorithm\n60 base\n+20 proficiency\n+20 timezone]
-        M1 --> ALGO
-    end
-
-    subgraph "Session Service :3003"
-        S1[POST /sessions]
-        S2[PATCH /:id/start]
-        S3[PATCH /:id/end]
-        S4[GET /search]
-        REPO[Repository Pattern]
-        ES[(Elasticsearch)]
-        S1 & S2 & S3 --> REPO
-        S3 --> ES
-        S4 --> ES
-    end
-
-    subgraph "Quiz Service :3004"
-        Q1[POST /:id/attempt]
-        Q2[GET /session/:id]
-        CMD[Commands\nGenerateQuiz\nSubmitAttempt]
-        QRY[Queries\nGetQuiz\nGetResult]
-        GROQ[Groq API\nLlama 3.3 70B]
-        Q1 --> CMD
-        Q2 --> QRY
-        CMD --> GROQ
-    end
-
-    subgraph "Notification Service :3005"
-        N1[GET /notifications]
-        N2[POST /send]
-        CB[Circuit Breaker\nOPEN/CLOSED\nHALF_OPEN]
-        N2 --> CB
-    end
-```
-
----
-
-##  Database Schema
-
-```mermaid
-erDiagram
-    profiles ||--o{ user_skills : has
-    profiles ||--o{ matches : "is learner"
-    profiles ||--o{ matches : "is teacher"
-    profiles ||--o{ sessions : hosts
-    profiles ||--o{ quiz_attempts : takes
-    profiles ||--o{ user_badges : earns
-    skills ||--o{ user_skills : "tagged on"
-    skills ||--o{ matches : "matched by"
-    matches ||--o{ sessions : "leads to"
-    sessions ||--o{ quizzes : generates
-    quizzes ||--o{ quiz_questions : contains
-    quiz_attempts ||--o{ quiz_responses : has
-    badges ||--o{ user_badges : "awarded as"
-
-    profiles {
-        uuid id PK
-        text username
-        text full_name
-        text avatar_url
-        text bio
-        text timezone
-        int xp_points
-    }
-
-    skills {
-        uuid id PK
-        text name
-        text category
-        text description
-    }
-
-    user_skills {
-        uuid id PK
-        uuid user_id FK
-        uuid skill_id FK
-        enum role "teach|learn|both"
-        int proficiency_level "1-5"
-        bool is_active
-    }
-
-    matches {
-        uuid id PK
-        uuid learner_id FK
-        uuid teacher_id FK
-        uuid skill_id FK
-        enum status "pending|accepted|declined|completed"
-        int match_score "0-100"
-    }
-
-    sessions {
-        uuid id PK
-        uuid match_id FK
-        uuid host_id FK
-        enum status "scheduled|live|completed|cancelled"
-        text webrtc_room_id
-        timestamptz started_at
-        timestamptz ended_at
-        int duration_seconds
-    }
-
-    quizzes {
-        uuid id PK
-        uuid session_id FK
-        text title
-        enum status "draft|published|archived"
-        int passing_score
-    }
-
-    quiz_questions {
-        uuid id PK
-        uuid quiz_id FK
-        text question_text
-        jsonb options
-        text correct_answer
-    }
-
-    badges {
-        uuid id PK
-        text name
-        text description
-        enum criteria_type
-        jsonb criteria_value
-    }
-```
-
----
-
-##  Design Patterns
-
-### Repository Pattern — Session Service
-
-```
-Controller (HTTP layer)
-      │
-      ▼
-SessionRepository (data access layer)
-      │
-      ├── findById(id)
-      ├── findByUserId(userId, status)
-      ├── create({ match_id, host_id, scheduled_at })
-      ├── updateStatus(id, status, extraFields)
-      ├── findAcceptedMatch(matchId)
-      └── completeMatch(matchId)
-      │
-      ▼
-Supabase PostgreSQL
-```
-
-### CQRS Pattern — Quiz Service
-
-```
-HTTP Request
-      │
-      ├── Write? ──► Commands/
-      │               ├── GenerateQuizCommand.js  (AI → DB write)
-      │               └── SubmitAttemptCommand.js  (score → DB write)
-      │
-      └── Read?  ──► Queries/
-                      ├── GetQuizQuery.js    (strips correct answers)
-                      └── GetResultQuery.js  (shows answers post-attempt)
-```
-
-### Circuit Breaker — Notification Service
-
-```mermaid
-stateDiagram-v2
-    [*] --> CLOSED
-    CLOSED --> OPEN : failures >= threshold (3)
-    OPEN --> HALF_OPEN : timeout elapsed (30s)
-    HALF_OPEN --> CLOSED : success >= threshold (2)
-    HALF_OPEN --> OPEN : any failure
-
-    CLOSED :  Requests flow normally
-    OPEN :  Requests fail immediately
-    HALF_OPEN :  One test request allowed
-```
-
----
-
-##  Infrastructure
-
-```mermaid
-graph TD
-    subgraph VPS["DigitalOcean VPS — Ubuntu 24.04 · 8GB RAM · 4vCPU"]
-        subgraph K3S["K3s Kubernetes Cluster"]
-            subgraph DEFAULT["namespace: default"]
-                SVC["5 Microservices\n2 replicas each\nHPA: 2-10 pods"]
-                DB["4 PostgreSQL StatefulSets\nassessment-db · matching-db\nsession-db · notification-db"]
-                REDIS_K["Redis Master"]
-                KAFKA_K["Kafka (KRaft)"]
-                ELASTIC_K["Elasticsearch 8.5"]
-            end
-            subgraph MONITORING["namespace: monitoring"]
-                PROM_K["Prometheus"]
-                GRAF_K["Grafana :3000"]
-                ALERT["AlertManager"]
-            end
-            subgraph SYSTEM["namespace: kube-system"]
-                TRAEFIK_K["Traefik Ingress"]
-                CERTMGR["cert-manager\nLet's Encrypt SSL"]
-            end
-        end
-    end
-
-    INTERNET[" Internet"] --> TRAEFIK_K
-    TRAEFIK_K --> SVC
-    SVC --> DB & REDIS_K & KAFKA_K & ELASTIC_K
-    CERTMGR --> TRAEFIK_K
-```
-
-### CAP Theorem Strategy
+### 🎯 CAP Theorem Strategy
 
 | Service | Strategy | Reason |
 |---|---|---|
-| Session Service | **CP** | WebRTC room IDs must be consistent |
-| Quiz Service | **CP** | Scores must be accurate for badges |
-| User Service | **AP** | Slightly stale profiles acceptable |
-| Matching Service | **AP** | Old matches OK, availability priority |
-| Notification Service | **AP** | Delayed notification > no notification |
+| **Session Service** | CP | WebRTC room IDs must be consistent across replicas |
+| **Quiz Service** | CP | Scores must be accurate for badges |
+| **User Service** | AP | Slightly stale profiles are acceptable |
+| **Matching Service** | AP | Old matches OK — availability priority |
+| **Notification Service** | AP | Delayed notification > no notification |
+
+### 🧩 Design Patterns in Play
+
+- **Repository Pattern** → Session Service (clean data-access layer)
+- **CQRS** → Quiz Service (separates command writes from query reads)
+- **Circuit Breaker** → Notification Service (graceful degradation on failure)
 
 ---
 
-##  CI/CD Pipeline
+## 🛠 Tech Stack
 
-```mermaid
-graph LR
-    DEV[" Developer\ngit push"] --> GH["GitHub\nmain branch"]
-    GH --> JENKINS["Jenkins\nBuild Now"]
+<div align="center">
 
-    subgraph PIPELINE["Jenkins 5-Stage Pipeline"]
-        C["① Checkout\ngit pull"] --> T
-        T["② Test\nJest parallel\n5 services"] --> B
-        B["③ Build\nDocker images\n+ frontend"] --> P
-        P["④ Push\nDocker Hub\n:latest + :N"] --> D
-        D["⑤ Deploy\nkubectl rolling\nupdate"]
-    end
+**Backend & Data**
 
-    JENKINS --> C
-    D --> K8S["Kubernetes\nZero-downtime\nrollout"]
-    K8S --> LIVE[" Live at\nskillbridge-sen3244\n.duckdns.org"]
-```
+[![Backend](https://skillicons.dev/icons?i=nodejs,express,supabase,postgres,redis,kafka&perline=8)](https://skillicons.dev)
 
----
+**Frontend**
 
-##  Tech Stack
+[![Frontend](https://skillicons.dev/icons?i=react,vite,tailwind,javascript&perline=8)](https://skillicons.dev)
+
+**Infrastructure**
+
+[![Infra](https://skillicons.dev/icons?i=kubernetes,docker,jenkins,terraform,ansible,prometheus,grafana,nginx&perline=8)](https://skillicons.dev)
+
+</div>
+
+<details>
+<summary><b>📋 Full dependency breakdown (click to expand)</b></summary>
 
 ### Backend
 | Technology | Purpose |
@@ -425,7 +226,7 @@ graph LR
 | Apache Kafka (KRaft) | Event streaming between services |
 | Redis | Profile caching (< 1ms reads) |
 | Elasticsearch 8.5 | Session transcript full-text search |
-| PostgreSQL x4 | Per-service StatefulSet databases |
+| PostgreSQL ×4 | Per-service StatefulSet databases |
 | Groq API (Llama 3.3 70B) | AI quiz generation |
 
 ### Frontend
@@ -437,7 +238,7 @@ graph LR
 | Supabase JS | Auth + Realtime subscriptions |
 | Axios | API calls with JWT interceptor |
 | lucide-react | Icon system |
-| WebRTC (native) | Peer-to-peer video sessions |
+| WebRTC (native) | Peer-to-peer video |
 
 ### Infrastructure
 | Technology | Purpose |
@@ -446,28 +247,27 @@ graph LR
 | Docker | Containerisation |
 | Helm | Package management |
 | Traefik | Ingress + SSL termination |
-| cert-manager + Let's Encrypt | Automatic SSL certificates |
+| cert-manager + Let's Encrypt | Automatic SSL |
 | Jenkins | CI/CD pipeline |
 | Prometheus + Grafana | Metrics + dashboards |
-| Ansible | Configuration management (4 playbooks) |
+| Ansible | Configuration management |
 | Terraform | Infrastructure as Code |
 | DigitalOcean | Cloud VPS provider |
 
+</details>
+
 ---
 
-##  Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 ```bash
-# Required
 node >= 20
 docker
 kubectl
 helm
-
-# Optional (for local dev)
-k3s or minikube
+# optional: k3s or minikube for local dev
 ```
 
 ### Clone & Setup
@@ -479,48 +279,48 @@ cd Skill-Bridge
 
 ### Environment Variables
 
-Each service needs a `.env` file. Copy from the example:
+Each service needs a `.env`. Copy from the examples:
 
 ```bash
-cp Services/user-service/.env.example        Services/user-service/.env
-cp Services/matching-service/.env.example    Services/matching-service/.env
-cp Services/session-service/.env.example     Services/session-service/.env
-cp Services/quiz-service/.env.example        Services/quiz-service/.env
+cp Services/user-service/.env.example         Services/user-service/.env
+cp Services/matching-service/.env.example     Services/matching-service/.env
+cp Services/session-service/.env.example      Services/session-service/.env
+cp Services/quiz-service/.env.example         Services/quiz-service/.env
 cp Services/notification-service/.env.example Services/notification-service/.env
-cp frontend/.env.example                     frontend/.env
+cp frontend/.env.example                      frontend/.env
 ```
 
-Fill in each `.env`:
+Fill them in:
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SECRET_KEY=your_secret_key
 KAFKA_BROKER=localhost:9092
-GROQ_API_KEY=gsk_your_groq_key         # quiz-service only
-ELASTIC_URL=https://localhost:9200      # session-service only
+GROQ_API_KEY=gsk_your_groq_key        # quiz-service only
+ELASTIC_URL=https://localhost:9200    # session-service only
 ```
 
 ### Run Locally
 
 ```bash
-# Install dependencies for all services
-cd Services/user-service && npm install && cd ../..
-cd Services/matching-service && npm install && cd ../..
-cd Services/session-service && npm install && cd ../..
-cd Services/quiz-service && npm install && cd ../..
-cd Services/notification-service && npm install && cd ../..
-cd frontend && npm install && cd ..
+# Install deps for every service
+for s in user-service matching-service session-service quiz-service notification-service; do
+  (cd Services/$s && npm install)
+done
+(cd frontend && npm install)
 
-# Run a service
-cd Services/user-service && npm run dev    # port 3001
-cd Services/matching-service && npm run dev # port 3002
-cd Services/session-service && npm run dev  # port 3003
-cd Services/quiz-service && npm run dev     # port 3004
-cd Services/notification-service && npm run dev # port 3005
-cd frontend && npm run dev                  # port 5173
+# Start each service in its own terminal
+cd Services/user-service          && npm run dev   # → :3001
+cd Services/matching-service      && npm run dev   # → :3002
+cd Services/session-service       && npm run dev   # → :3003
+cd Services/quiz-service          && npm run dev   # → :3004
+cd Services/notification-service  && npm run dev   # → :3005
+cd frontend                       && npm run dev   # → :5173
 ```
 
-### Run Tests
+---
+
+## 🧪 Running Tests
 
 ```bash
 cd Services/user-service && npm test
@@ -530,7 +330,9 @@ cd Services/quiz-service && npm test
 cd Services/notification-service && npm test
 ```
 
-### Deploy to Kubernetes
+---
+
+## ☸️ Deploy to Kubernetes
 
 ```bash
 # Create secrets
@@ -542,16 +344,17 @@ kubectl create secret generic user-service-secret \
 kubectl apply -f k8s/
 
 # Or trigger Jenkins pipeline
-# → http://your-vps:8080 → SkillBridge → Build Now
+#   → http://your-vps:8080 → Skill-Bridge → Build Now
 ```
 
 ---
 
-##  API Documentation
+## 📖 API Documentation
 
-All services are accessible via the Traefik ingress at `http://skillbridge-sen3244.duckdns.org`
+All services route through Traefik at `http://skillbridge-sen3244.duckdns.org`.
 
-### User Service `/api/users`
+<details>
+<summary><b>👤 User Service — <code>/api/users</code></b></summary>
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -563,15 +366,21 @@ All services are accessible via the Traefik ingress at `http://skillbridge-sen32
 | `DELETE` | `/skills/me/:id` | Remove a skill |
 | `GET` | `/badges/me` | Get my badges |
 
-### Matching Service `/api/matching`
+</details>
+
+<details>
+<summary><b>🎯 Matching Service — <code>/api/matching</code></b></summary>
 
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/run/:userId` | Trigger matching algorithm |
 | `GET` | `/matches/me` | Get my matches |
-| `PATCH` | `/matches/:id` | Accept or decline a match |
+| `PATCH` | `/matches/:id` | Accept or decline |
 
-### Session Service `/api/sessions`
+</details>
+
+<details>
+<summary><b>📹 Session Service — <code>/api/sessions</code></b></summary>
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -579,9 +388,12 @@ All services are accessible via the Traefik ingress at `http://skillbridge-sen32
 | `GET` | `/me` | Get my sessions |
 | `PATCH` | `/:id/start` | Go live |
 | `PATCH` | `/:id/end` | End session + trigger quiz |
-| `GET` | `/search?q=` | Search transcripts |
+| `GET` | `/search?q=` | Full-text transcript search |
 
-### Quiz Service `/api/quizzes`
+</details>
+
+<details>
+<summary><b>🧠 Quiz Service — <code>/api/quizzes</code></b></summary>
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -589,7 +401,10 @@ All services are accessible via the Traefik ingress at `http://skillbridge-sen32
 | `POST` | `/:quizId/attempt` | Submit answers |
 | `GET` | `/:quizId/result` | Get my result |
 
-### Notification Service `/api/notifications`
+</details>
+
+<details>
+<summary><b>🔔 Notification Service — <code>/api/notifications</code></b></summary>
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -598,9 +413,25 @@ All services are accessible via the Traefik ingress at `http://skillbridge-sen32
 | `PATCH` | `/read-all` | Mark all read |
 | `GET` | `/circuit-status` | Circuit breaker state |
 
+</details>
+
 ---
 
-##  Team
+## 🗺 Roadmap
+
+- [x] 5-microservice MVP with Kafka events
+- [x] WebRTC peer-to-peer video
+- [x] AI quiz generation (Groq + Llama 3.3)
+- [x] Elasticsearch transcript search
+- [x] K3s deployment + Jenkins CI/CD
+- [ ] Mobile app (React Native)
+- [ ] Group sessions (3+ participants)
+- [ ] Skill certifications & verified portfolios
+- [ ] Multilingual quiz generation (FR + Pidgin)
+
+---
+
+## 👥 Team
 
 | Role | Responsibility |
 |---|---|
@@ -608,19 +439,24 @@ All services are accessible via the Traefik ingress at `http://skillbridge-sen32
 | **Scrum Master / DevOps Lead** | Terraform, Ansible, Jenkins, K8s manifests, Prometheus/Grafana, NGINX |
 
 **Course:** SEN3244 — Software Architecture
-**Institution:** ICT University — Faculty of Information and Communication Technologies
+**Institution:** ICT University — Faculty of Information & Communication Technologies
 **Instructor:** Engr. Tekoh Palma
 **Season:** Spring 2026
 
 ---
 
+## 📄 License
+
+MIT — see [LICENSE](LICENSE)
+
+---
+
 <div align="center">
 
-**Built with ❤️ by the SkillBridge team**
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=120&section=footer" />
+
+**Built with ❤️ in Yaoundé 🇨🇲**
 
 *"The best way to learn is to teach."*
-
-[![Deploy Status](https://img.shields.io/badge/deployment-live-brightgreen?style=flat-square)](http://skillbridge-sen3244.duckdns.org)
-[![Made with](https://img.shields.io/badge/made%20with-Node.js%20%2B%20React-blue?style=flat-square)](https://github.com/Asongwelewis/Skill-Bridge)
 
 </div>
