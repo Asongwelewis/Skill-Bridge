@@ -21,6 +21,11 @@ jest.mock('../src/kafka/producer', () => ({
   stopKafkaProducer:       jest.fn().mockResolvedValue(undefined)
 }));
 
+jest.mock('../src/elastic/elasticClient', () => ({
+  indexTranscript:    jest.fn().mockResolvedValue(undefined),
+  searchTranscripts:  jest.fn().mockResolvedValue([])
+}));
+
 const supabase = require('../src/supabaseClient');
 const { publishSessionCompleted } = require('../src/kafka/producer');
 

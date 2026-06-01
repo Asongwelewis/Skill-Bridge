@@ -1,5 +1,6 @@
 const SessionRepository            = require('../repositories/SessionRepository');
 const { publishSessionCompleted }  = require('../kafka/producer');
+const { indexTranscript } = require('../elastic/elasticClient');
 
 // POST /api/sessions
 async function createSession(req, res) {
@@ -87,6 +88,8 @@ async function endSession(req, res) {
 
     await SessionRepository.completeMatch(session.match_id);
     await publishSessionCompleted(updated);
+    // Index transcript in Elasticsearch for search
+    await indexTranscript(updated);
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
