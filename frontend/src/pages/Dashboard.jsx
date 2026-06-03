@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import { matchingApi, sessionApi, notificationApi } from '../lib/api'
 import StatCard from '../components/StatCard'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
-import toast from 'react-hot-toast'
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -20,9 +19,9 @@ export default function Dashboard() {
     const load = async () => {
       try {
         const [m, s, n] = await Promise.allSettled([
-          matchingApi.getMatches(user.id),
-          sessionApi.getSessions(user.id),
-          notificationApi.getAll(user.id),
+          matchingApi.getMyMatches(),
+          sessionApi.getMySessions(),
+          notificationApi.getAll(),   // ← no userId param
         ])
         if (m.status === 'fulfilled') setMatches(m.value.data?.matches || m.value.data || [])
         if (s.status === 'fulfilled') setSessions(s.value.data?.sessions || s.value.data || [])
@@ -32,18 +31,19 @@ export default function Dashboard() {
     load()
   }, [user])
 
-  const xp = user?.user_metadata?.xp || 0
-  const level = Math.floor(xp / 100) + 1
-  const xpProgress = xp % 100
-  const pendingMatches = matches.filter(m => m.status === 'pending')
-  const upcomingSessions = sessions.filter(s => s.status === 'scheduled')
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner'
+  const xp            = user?.user_metadata?.xp || 0
+  const level         = Math.floor(xp / 100) + 1
+  const xpProgress    = xp % 100
+  const pendingMatches    = matches.filter(m => m.status === 'pending')
+  const upcomingSessions  = sessions.filter(s => s.status === 'scheduled' || s.status === 'live')
+  const userName      = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner'
+  const unreadNotifs  = notifications.filter(n => !n.read)
 
   const quickActions = [
-    { to: '/skills',   icon: Zap,   label: 'Add Skills',   desc: 'Tell us what you know',         color: 'indigo' },
-    { to: '/matches',  icon: Users,  label: 'View Matches', desc: `${pendingMatches.length} pending`, color: 'purple' },
-    { to: '/sessions', icon: Video,  label: 'Sessions',     desc: `${upcomingSessions.length} upcoming`, color: 'emerald' },
-    { to: '/profile',  icon: Award,  label: 'My Badges',   desc: 'View achievements',             color: 'amber' },
+    { to: '/skills',   icon: Zap,   label: 'Add Skills',   desc: 'Tell us what you know',           color: 'indigo'  },
+    { to: '/matches',  icon: Users,  label: 'View Matches', desc: `${pendingMatches.length} pending`, color: 'purple'  },
+    { to: '/sessions', icon: Video,  label: 'Sessions',     desc: `${upcomingSessions.length} upcoming`, color: 'emerald'},
+    { to: '/profile',  icon: Award,  label: 'My Badges',   desc: 'View achievements',               color: 'amber'   },
   ]
 
   const actionColors = {
@@ -54,8 +54,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl mx-auto page-enter theme-transition"
-      style={{ color: 'var(--text)' }}>
+    <div className="p-6 md:p-8 max-w-6xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
 
       {/* Header */}
       <div className="mb-8 animate-slide-down">
@@ -68,11 +67,11 @@ export default function Dashboard() {
               Here's what's happening with your learning today
             </p>
           </div>
-          {notifications.filter(n => !n.read).length > 0 && (
+          {unreadNotifs.length > 0 && (
             <div className="relative mt-1">
               <Bell size={20} style={{ color: 'var(--text-muted)' }} />
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 rounded-full text-white text-xs flex items-center justify-center">
-                {notifications.filter(n => !n.read).length}
+                {unreadNotifs.length}
               </span>
             </div>
           )}
@@ -80,14 +79,10 @@ export default function Dashboard() {
 
         {/* XP bar */}
         <div className="mt-6 p-5 rounded-2xl animate-slide-up delay-100"
-          style={{
-            background: 'linear-gradient(135deg, rgba(79,70,229,0.12) 0%, var(--surface) 100%)',
-            border: '1px solid rgba(79,70,229,0.2)',
-          }}>
+          style={{ background: 'linear-gradient(135deg, rgba(79,70,229,0.12) 0%, var(--surface) 100%)', border: '1px solid rgba(79,70,229,0.2)' }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: 'rgba(79,70,229,0.2)' }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(79,70,229,0.2)' }}>
                 <TrendingUp size={16} className="text-indigo-400" />
               </div>
               <div>
@@ -101,12 +96,7 @@ export default function Dashboard() {
           </div>
           <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--surface-3)' }}>
             <div className="h-full rounded-full transition-all duration-1000"
-              style={{
-                width: `${xpProgress}%`,
-                background: 'linear-gradient(90deg, #4F46E5, #10B981)',
-                boxShadow: '0 0 8px rgba(79,70,229,0.5)',
-              }}
-            />
+              style={{ width: `${xpProgress}%`, background: 'linear-gradient(90deg, #4F46E5, #10B981)', boxShadow: '0 0 8px rgba(79,70,229,0.5)' }} />
           </div>
         </div>
       </div>
@@ -114,17 +104,14 @@ export default function Dashboard() {
       {/* Stats grid */}
       <div ref={statsRef} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {loading
-          ? Array(4).fill(0).map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl skeleton" />
-            ))
+          ? Array(4).fill(0).map((_, i) => <div key={i} className="h-28 rounded-2xl skeleton" />)
           : [
-              { icon: Zap,   label: 'Total XP',  value: xp,              color: 'indigo' },
-              { icon: Users, label: 'Matches',   value: matches.length,  color: 'purple' },
-              { icon: Video, label: 'Sessions',  value: sessions.length, color: 'emerald' },
-              { icon: Award, label: 'Badges',    value: user?.user_metadata?.badges?.length || 0, color: 'amber' },
+              { icon: Zap,   label: 'Total XP', value: xp,              color: 'indigo'  },
+              { icon: Users, label: 'Matches',  value: matches.length,  color: 'purple'  },
+              { icon: Video, label: 'Sessions', value: sessions.length, color: 'emerald' },
+              { icon: Award, label: 'Badges',   value: user?.user_metadata?.badges?.length || 0, color: 'amber' },
             ].map(({ icon, label, value, color }, i) => (
-              <div key={label}
-                className={`reveal ${statsVisible ? 'visible' : ''} ${staggerDelay(i)}`}>
+              <div key={label} className={`reveal ${statsVisible ? 'visible' : ''} ${staggerDelay(i)}`}>
                 <StatCard icon={icon} label={label} value={value} color={color} />
               </div>
             ))
@@ -139,22 +126,15 @@ export default function Dashboard() {
             const c = actionColors[color]
             return (
               <Link key={to} to={to}
-                className={`p-5 rounded-2xl transition-all duration-200 group hover-lift
-                  animate-slide-up`}
-                style={{
-                  animationDelay: `${200 + i * 80}ms`,
-                  background: 'var(--surface)',
-                  border: `1px solid ${c.border}`,
-                  boxShadow: 'var(--card-shadow)',
-                }}>
+                className="p-5 rounded-2xl transition-all duration-200 group hover-lift animate-slide-up"
+                style={{ animationDelay: `${200 + i * 80}ms`, background: 'var(--surface)', border: `1px solid ${c.border}`, boxShadow: 'var(--card-shadow)' }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110"
                   style={{ background: c.bg }}>
                   <Icon size={18} style={{ color: c.icon }} />
                 </div>
                 <p className="font-semibold text-sm mb-0.5">{label}</p>
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{desc}</p>
-                <ArrowRight size={14} className="mt-3 transition-all duration-200 group-hover:translate-x-1"
-                  style={{ color: 'var(--text-subtle)' }} />
+                <ArrowRight size={14} className="mt-3 transition-all duration-200 group-hover:translate-x-1" style={{ color: 'var(--text-subtle)' }} />
               </Link>
             )
           })}
@@ -163,7 +143,6 @@ export default function Dashboard() {
 
       {/* Recent panels */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Recent Matches */}
         <div className="rounded-2xl p-5 animate-slide-left delay-300"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
           <div className="flex items-center justify-between mb-4">
@@ -178,18 +157,17 @@ export default function Dashboard() {
               ? <EmptyState icon={Users} msg="No matches yet" hint="Add skills to get matched →" to="/skills" />
               : <div className="space-y-1">
                   {matches.slice(0, 4).map((m, i) => (
-                    <div key={m._id || i}
+                    <div key={m.id || i}
                       className="flex items-center justify-between p-3 rounded-xl transition-all duration-150"
-                      style={{ ':hover': { background: 'var(--surface-3)' } }}
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-indigo-600/20 flex items-center justify-center text-indigo-400 text-xs font-bold">
-                          {(m.matchedUser?.name || 'U')[0]?.toUpperCase()}
+                          {(m.teacher?.username || m.learner?.username || 'P')[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{m.matchedUser?.name || 'Peer Learner'}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{m.skill || 'Skill exchange'}</p>
+                          <p className="text-sm font-medium">{m.teacher?.username || m.learner?.username || 'Peer Learner'}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{m.skill_name || 'Skill exchange'}</p>
                         </div>
                       </div>
                       <StatusBadge status={m.status} />
@@ -199,7 +177,6 @@ export default function Dashboard() {
           }
         </div>
 
-        {/* Upcoming Sessions */}
         <div className="rounded-2xl p-5 animate-slide-right delay-300"
           style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
           <div className="flex items-center justify-between mb-4">
@@ -214,7 +191,7 @@ export default function Dashboard() {
               ? <EmptyState icon={Clock} msg="No upcoming sessions" hint="Accept a match to schedule →" to="/matches" />
               : <div className="space-y-1">
                   {upcomingSessions.slice(0, 4).map((s, i) => (
-                    <Link key={s._id || i} to={`/session/${s._id}`}
+                    <Link key={s.id || i} to={`/session/${s.id}`}
                       className="flex items-center justify-between p-3 rounded-xl transition-all duration-150 group"
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -223,14 +200,13 @@ export default function Dashboard() {
                           <Video size={14} className="text-emerald-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{s.topic || 'Learning Session'}</p>
+                          <p className="text-sm font-medium">{s.skill_topic || s.topic || 'Learning Session'}</p>
                           <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
-                            {s.scheduledAt ? new Date(s.scheduledAt).toLocaleDateString() : 'Scheduled'}
+                            {s.scheduled_at ? new Date(s.scheduled_at).toLocaleDateString() : 'Scheduled'}
                           </p>
                         </div>
                       </div>
-                      <ArrowRight size={14} className="transition-all group-hover:translate-x-1 group-hover:text-indigo-400"
-                        style={{ color: 'var(--text-subtle)' }} />
+                      <ArrowRight size={14} className="transition-all group-hover:translate-x-1 group-hover:text-indigo-400" style={{ color: 'var(--text-subtle)' }} />
                     </Link>
                   ))}
                 </div>

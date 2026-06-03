@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Trash2, Zap, BookOpen, Repeat, Star, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { matchingApi } from '../lib/api'
+import { userApi } from '../lib/api'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 import toast from 'react-hot-toast'
 
 const PROFICIENCY = [
-  { level: 1, label: 'Beginner',      color: '#f87171' },
-  { level: 2, label: 'Elementary',    color: '#fb923c' },
-  { level: 3, label: 'Intermediate',  color: '#fbbf24' },
-  { level: 4, label: 'Advanced',      color: '#34d399' },
-  { level: 5, label: 'Expert',        color: '#818cf8' },
+  { level: 1, label: 'Beginner',     color: '#f87171' },
+  { level: 2, label: 'Elementary',   color: '#fb923c' },
+  { level: 3, label: 'Intermediate', color: '#fbbf24' },
+  { level: 4, label: 'Advanced',     color: '#34d399' },
+  { level: 5, label: 'Expert',       color: '#818cf8' },
 ]
 
-const MODE_ICONS = { teach: Zap, learn: BookOpen, both: Repeat }
+const MODE_ICONS  = { teach: Zap, learn: BookOpen, both: Repeat }
 const MODE_COLORS = {
   teach: { border: 'rgba(79,70,229,0.4)',   bg: 'rgba(79,70,229,0.1)',   text: '#818CF8' },
   learn: { border: 'rgba(16,185,129,0.4)',  bg: 'rgba(16,185,129,0.1)',  text: '#34D399' },
@@ -38,11 +38,21 @@ export default function Skills() {
   const load = async () => {
     if (!user) return
     try {
-      const res = await matchingApi.getSkills(user.id)
-      setSkills(res.data?.skills || res.data || [])
+      const res = await userApi.getMySkills()
+      // Backend returns array of user_skills with nested skills object
+      const raw = res.data?.skills || res.data || []
+      const normalized = raw.map(s => ({
+        id:          s.id,
+        name:        s.skills?.name || s.skill_name || s.name || 'Unknown',
+        category:    s.skills?.category || s.category || '',
+        mode:        s.role || s.mode || 'both',
+        proficiency: s.proficiency_level || s.proficiency || 3,
+      }))
+      setSkills(normalized)
     } catch { setSkills([]) }
     finally { setLoading(false) }
   }
+
   useEffect(() => { load() }, [user])
 
   const handleAdd = async (e) => {
@@ -50,21 +60,26 @@ export default function Skills() {
     if (!form.name.trim()) return toast.error('Skill name required')
     setSaving(true)
     try {
-      await matchingApi.addSkill(user.id, { ...form, userId: user.id })
+      await userApi.addMySkill({
+        skill_name:        form.name,
+        category:          form.category,
+        role:              form.mode,
+        proficiency_level: form.proficiency,
+      })
       toast.success('Skill added!')
       setShowModal(false)
       setForm({ name: '', category: '', mode: 'both', proficiency: 3 })
       load()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add skill')
+      toast.error(err.response?.data?.error || 'Failed to add skill')
     } finally { setSaving(false) }
   }
 
   const handleDelete = async (skillId) => {
     try {
-      await matchingApi.deleteSkill(skillId)
+      await userApi.removeMySkill(skillId)
       toast.success('Skill removed')
-      setSkills(s => s.filter(sk => sk._id !== skillId))
+      setSkills(s => s.filter(sk => sk.id !== skillId))
     } catch { toast.error('Failed to remove skill') }
   }
 
@@ -73,7 +88,6 @@ export default function Skills() {
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
-
       {/* Header */}
       <div className="flex items-start justify-between mb-8 animate-slide-down">
         <div>
@@ -117,24 +131,17 @@ export default function Skills() {
             const mc = MODE_COLORS[skill.mode] || MODE_COLORS.both
             const pc = profColor(skill.proficiency)
             return (
-              <div key={skill._id || i}
-                className={`reveal ${gridVisible ? 'visible' : ''} ${stagger(i)}`}>
+              <div key={skill.id || i} className={`reveal ${gridVisible ? 'visible' : ''} ${stagger(i)}`}>
                 <div className="p-5 rounded-2xl group relative h-full hover-lift"
-                  style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    boxShadow: 'var(--card-shadow)',
-                  }}>
-                  <button onClick={() => handleDelete(skill._id)}
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
+                  <button onClick={() => handleDelete(skill.id)}
                     className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-200
                       hover:scale-110 p-1 rounded-lg hover:bg-red-500/15"
                     style={{ color: 'var(--text-subtle)' }}>
                     <Trash2 size={14} className="hover:text-red-400" />
                   </button>
-
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: mc.bg }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: mc.bg }}>
                       <ModeIcon size={18} style={{ color: mc.text }} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -144,7 +151,6 @@ export default function Skills() {
                       )}
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium px-2.5 py-1 rounded-lg border"
                       style={{ background: mc.bg, borderColor: mc.border, color: mc.text }}>
@@ -154,12 +160,9 @@ export default function Skills() {
                       {Array(5).fill(0).map((_, j) => (
                         <Star key={j} size={11}
                           style={{ color: j < (skill.proficiency || 3) ? '#fbbf24' : 'var(--border-2)' }}
-                          fill={j < (skill.proficiency || 3) ? 'currentColor' : 'none'}
-                        />
+                          fill={j < (skill.proficiency || 3) ? 'currentColor' : 'none'} />
                       ))}
-                      <span className="text-xs ml-1 font-medium" style={{ color: pc }}>
-                        {profLabel(skill.proficiency)}
-                      </span>
+                      <span className="text-xs ml-1 font-medium" style={{ color: pc }}>{profLabel(skill.proficiency)}</span>
                     </div>
                   </div>
                 </div>
@@ -183,9 +186,7 @@ export default function Skills() {
                 <X size={16} />
               </button>
             </div>
-
             <form onSubmit={handleAdd} className="space-y-5">
-              {/* Name */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Skill Name *</label>
                 <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -193,8 +194,6 @@ export default function Skills() {
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
                   style={inputStyle} />
               </div>
-
-              {/* Category */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Category</label>
                 <input type="text" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
@@ -202,8 +201,6 @@ export default function Skills() {
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
                   style={inputStyle} />
               </div>
-
-              {/* Mode */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Mode</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -224,8 +221,6 @@ export default function Skills() {
                   })}
                 </div>
               </div>
-
-              {/* Proficiency */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
                   Proficiency:{' '}
@@ -248,7 +243,6 @@ export default function Skills() {
                   <span>Beginner</span><span>Expert</span>
                 </div>
               </div>
-
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)}
                   className="flex-1 py-3 rounded-xl text-sm font-medium transition-all hover:-translate-y-0.5"

@@ -7,24 +7,41 @@ import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 import toast from 'react-hot-toast'
 
 const STATUS_CFG = {
-  pending:  { label: 'Pending',  textColor: '#fbbf24', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',  Icon: Clock },
-  accepted: { label: 'Accepted', textColor: '#34d399', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',  Icon: CheckCircle },
-  declined: { label: 'Declined', textColor: '#f87171', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)',   Icon: XCircle },
+  pending:   { label: 'Pending',   textColor: '#fbbf24', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',  Icon: Clock },
+  accepted:  { label: 'Accepted',  textColor: '#34d399', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',  Icon: CheckCircle },
+  declined:  { label: 'Declined',  textColor: '#f87171', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)',   Icon: XCircle },
+  completed: { label: 'Completed', textColor: '#818cf8', bg: 'rgba(79,70,229,0.12)',   border: 'rgba(79,70,229,0.3)',   Icon: CheckCircle },
 }
 
 export default function Matches() {
   const { user } = useAuth()
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [filter,  setFilter]  = useState('all')
   const [actionLoading, setActionLoading] = useState(null)
   const [listRef, listVisible, stagger] = useStaggerAnimation(8)
 
   useEffect(() => {
     if (!user) return
-    matchingApi.getMatches(user.id)
-      .then(res => setMatches(res.data?.matches || res.data || []))
+    matchingApi.getMyMatches()
+      .then(res => {
+        const raw = res.data?.matches || res.data || []
+        // Normalize backend fields to frontend-expected shape
+        const normalized = raw.map(m => ({
+          id:            m.id,
+          status:        m.status || 'pending',
+          skill:         m.skill_name || m.skill || '',
+          score:         m.match_score || m.score || 0,
+          matchedUser: {
+            name:  m.teacher_id === user.id
+              ? (m.learner?.username || m.learner?.full_name || m.learner_id)
+              : (m.teacher?.username || m.teacher?.full_name || m.teacher_id),
+            email: m.teacher_id === user.id ? m.learner?.email : m.teacher?.email,
+          },
+        }))
+        setMatches(normalized)
+      })
       .catch(() => setMatches([]))
       .finally(() => setLoading(false))
   }, [user])
@@ -32,8 +49,8 @@ export default function Matches() {
   const handleAction = async (matchId, action) => {
     setActionLoading(matchId + action)
     try {
-      await matchingApi.updateMatch(matchId, { status: action })
-      setMatches(m => m.map(x => x._id === matchId ? { ...x, status: action } : x))
+      await matchingApi.updateMatch(matchId, action)
+      setMatches(m => m.map(x => x.id === matchId ? { ...x, status: action } : x))
       toast.success(action === 'accepted' ? 'Match accepted!' : 'Match declined.')
     } catch { toast.error('Failed to update match') }
     finally { setActionLoading(null) }
@@ -41,24 +58,19 @@ export default function Matches() {
 
   const startSession = async (match) => {
     try {
-      const res = await sessionApi.createSession({
-        matchId: match._id,
-        participants: [user.id, match.matchedUserId],
-        topic: `${match.skill || 'Skill'} Exchange Session`,
-        status: 'scheduled',
-      })
-      const sid = res.data?.session?._id || res.data?._id
+      const res = await sessionApi.createSession({ match_id: match.id })
+      const sid = res.data?.id || res.data?.session?.id
       if (sid) navigate(`/session/${sid}`)
       else toast.error('Session created — check sessions page')
-    } catch { toast.error('Failed to create session') }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to create session')
+    }
   }
 
   const filtered = filter === 'all' ? matches : matches.filter(m => m.status === filter)
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
-
-      {/* Header */}
       <div className="mb-8 animate-slide-down">
         <h1 className="text-2xl font-bold mb-1">Skill Matches</h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -66,16 +78,15 @@ export default function Matches() {
         </p>
       </div>
 
-      {/* Filter tabs */}
       <div className="flex gap-2 mb-6 flex-wrap animate-fade-in delay-100">
         {['all', 'pending', 'accepted', 'declined'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
             style={{
               background: filter === f ? '#4F46E5' : 'var(--surface)',
-              color: filter === f ? '#fff' : 'var(--text-muted)',
-              border: filter === f ? '1px solid transparent' : '1px solid var(--border)',
-              boxShadow: filter === f ? '0 4px 12px rgba(79,70,229,0.3)' : 'none',
+              color:      filter === f ? '#fff'    : 'var(--text-muted)',
+              border:     filter === f ? '1px solid transparent' : '1px solid var(--border)',
+              boxShadow:  filter === f ? '0 4px 12px rgba(79,70,229,0.3)' : 'none',
             }}>
             {f.charAt(0).toUpperCase() + f.slice(1)}
             {f !== 'all' && (
@@ -112,29 +123,21 @@ export default function Matches() {
             const StatusIcon = cfg.Icon
             const isPending  = match.status === 'pending'
             const isAccepted = match.status === 'accepted'
-
             return (
-              <div key={match._id || i}
-                className={`reveal ${listVisible ? 'visible' : ''} ${stagger(i)}`}>
+              <div key={match.id || i} className={`reveal ${listVisible ? 'visible' : ''} ${stagger(i)}`}>
                 <div className="p-5 rounded-2xl transition-all duration-200"
-                  style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    boxShadow: 'var(--card-shadow)',
-                  }}
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-2)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
                   <div className="flex items-start gap-4">
-                    {/* Avatar */}
                     <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 flex items-center justify-center
                       text-indigo-400 font-bold text-lg shrink-0">
-                      {(match.matchedUser?.name || match.matchedUser?.email || 'P')[0]?.toUpperCase()}
+                      {(match.matchedUser?.name || 'P')[0]?.toUpperCase()}
                     </div>
-
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <p className="font-semibold">
-                          {match.matchedUser?.name || match.matchedUser?.email || 'Peer Learner'}
+                          {match.matchedUser?.name || 'Peer Learner'}
                         </p>
                         <span className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border shrink-0"
                           style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.textColor }}>
@@ -142,46 +145,41 @@ export default function Matches() {
                           {cfg.label}
                         </span>
                       </div>
-
                       {match.skill && (
                         <div className="flex items-center gap-2 mb-2">
                           <Zap size={13} className="text-indigo-400" />
                           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{match.skill}</span>
                         </div>
                       )}
-
-                      {match.score && (
+                      {match.score > 0 && (
                         <div className="flex items-center gap-1 mb-3">
                           {Array(5).fill(0).map((_, j) => (
                             <Star key={j} size={11}
                               style={{ color: j < Math.round(match.score / 20) ? '#fbbf24' : 'var(--border-2)' }}
-                              fill={j < Math.round(match.score / 20) ? 'currentColor' : 'none'}
-                            />
+                              fill={j < Math.round(match.score / 20) ? 'currentColor' : 'none'} />
                           ))}
                           <span className="text-xs ml-1" style={{ color: 'var(--text-subtle)' }}>
                             {match.score}% match
                           </span>
                         </div>
                       )}
-
-                      {/* Actions */}
                       {isPending && (
                         <div className="flex gap-2 mt-3">
-                          <button onClick={() => handleAction(match._id, 'accepted')}
+                          <button onClick={() => handleAction(match.id, 'accepted')}
                             disabled={!!actionLoading}
                             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
                               transition-all hover:-translate-y-0.5 disabled:opacity-60"
                             style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }}>
                             <CheckCircle size={14} />
-                            {actionLoading === match._id + 'accepted' ? 'Accepting…' : 'Accept'}
+                            {actionLoading === match.id + 'accepted' ? 'Accepting…' : 'Accept'}
                           </button>
-                          <button onClick={() => handleAction(match._id, 'declined')}
+                          <button onClick={() => handleAction(match.id, 'declined')}
                             disabled={!!actionLoading}
                             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
                               transition-all hover:-translate-y-0.5 disabled:opacity-60"
                             style={{ background: 'var(--surface-3)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                             <XCircle size={14} />
-                            {actionLoading === match._id + 'declined' ? 'Declining…' : 'Decline'}
+                            {actionLoading === match.id + 'declined' ? 'Declining…' : 'Decline'}
                           </button>
                         </div>
                       )}
