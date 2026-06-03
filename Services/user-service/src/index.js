@@ -39,8 +39,10 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start ────────────────────────────────────────────────────
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`User Service running on port ${PORT}`);
 });
+
+module.exports = app;
 
 module.exports = app; // for testing
