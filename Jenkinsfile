@@ -92,7 +92,7 @@ pipeline {
                         docker build \
                             --build-arg VITE_SUPABASE_URL=https://tulwescncreiuclmfafv.supabase.co \
                             --build-arg VITE_SUPABASE_ANON_KEY=sb_publishable_4bZC7aRz9WynNik-2yqibg_DfKrBi0i \
-                            --build-arg VITE_API_URL=http://skillbridge-sen3244.duckdns.org \
+                            --build-arg VITE_API_URL=https://skillbridge-sen3244.duckdns.org \
                             -t ${DOCKERHUB_USER}/skillbridge-frontend:${BUILD_NUMBER} \
                             -t ${DOCKERHUB_USER}/skillbridge-frontend:latest \
                             frontend
