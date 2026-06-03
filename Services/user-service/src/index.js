@@ -39,10 +39,11 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start ────────────────────────────────────────────────────
-const server = app.listen(PORT, () => {
-  console.log(`User Service running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`User Service running on port ${PORT}`);
+  });
+}
 
-module.exports = app;
 
 module.exports = app; // for testing
