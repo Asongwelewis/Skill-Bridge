@@ -171,7 +171,7 @@ export default function Matches() {
             const isPending = match.status === 'pending'
             const isAccepted = match.status === 'accepted'
             return (
-              <div key={match.id || i} className={`reveal ${listVisible ? 'visible' : ''} ${stagger(i)}`}>
+              <div key={match.id || i} className={`reveal visible ${stagger(i)}`}>
                 <div className="glass-panel card-3d p-5 transition-all duration-200"
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(129,140,248,0.35)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'}>
