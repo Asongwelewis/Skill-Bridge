@@ -4,7 +4,6 @@ import { Users, CheckCircle, XCircle, Clock, Video, Star, Zap, ArrowRight } from
 import { useAuth } from '../context/AuthContext'
 import { matchingApi, sessionApi } from '../lib/api'
 import Avatar from '../components/Avatar'
-import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 import toast from 'react-hot-toast'
 
 const STATUS_CFG = {
@@ -21,7 +20,6 @@ export default function Matches() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [actionLoading, setActionLoading] = useState(null)
-  const [listRef, listVisible, stagger] = useStaggerAnimation(8)
 
   useEffect(() => {
     if (!user) return
@@ -118,7 +116,7 @@ export default function Matches() {
             <LinkRow to="/skills" icon={Zap} title="Add more skills" description="Improve your match pool" />
             <LinkRow to="/sessions" icon={Video} title="Open sessions" description="See accepted sessions" />
           </div>
-          <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/8 backdrop-blur-lg p-5">
+          <div className="mt-6 rounded-3xl border border-white/10 bg-white/8 backdrop-blur-lg p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="font-medium">Matching flow</p>
               <ArrowRight size={14} className="text-indigo-300" />
@@ -164,15 +162,16 @@ export default function Matches() {
           </p>
         </div>
       ) : (
-        <div ref={listRef} className="space-y-3">
+        <div className="space-y-3">
           {filtered.map((match, i) => {
             const cfg = STATUS_CFG[match.status] || STATUS_CFG.pending
             const StatusIcon = cfg.Icon
             const isPending = match.status === 'pending'
             const isAccepted = match.status === 'accepted'
+            const entranceClass = i % 2 === 0 ? 'animate-slide-left' : 'animate-slide-right'
             return (
-              <div key={match.id || i} className={`reveal visible ${stagger(i)}`}>
-                <div className="glass-panel card-3d p-5 transition-all duration-200"
+              <div key={match.id || i} className={`${entranceClass} delay-${Math.min(i * 75, 800)}`}>
+                <div className="glass-panel card-3d p-5 transition-all duration-200 hover-lift"
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(129,140,248,0.35)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'}>
                   <div className="flex items-start gap-4">
