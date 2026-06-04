@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { matchingApi, sessionApi } from '../lib/api'
 import Avatar from '../components/Avatar'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
 
 const STATUS_CFG = {
   pending: { label: 'Pending', textColor: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', Icon: Clock },
@@ -60,13 +61,28 @@ export default function Matches() {
   }
 
   const startSession = async (match) => {
+    // quick client-side sanity check for an auth session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      toast.error('You are not signed in (no active session). Please sign in and try again.')
+      return
+    }
+
     try {
       const res = await sessionApi.createSession({ match_id: match.id })
       const sid = res.data?.id || res.data?.session?.id
       if (sid) navigate(`/session/${sid}`)
       else toast.error('Session created — check sessions page')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to create session')
+      const status = err?.response?.status
+      const serverMsg = err?.response?.data?.error
+      if (status === 401) {
+        toast.error(serverMsg || 'Your sign-in expired. Please sign in again.')
+        // optional: force client sign-out to reset auth state
+        try { await supabase.auth.signOut() } catch (_) {}
+        return
+      }
+      toast.error(serverMsg || 'Failed to create session')
     }
   }
 

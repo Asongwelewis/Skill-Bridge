@@ -4,7 +4,6 @@ import { Video, Clock, CheckCircle, Calendar, ArrowRight, Search, Sparkles } fro
 import { useAuth } from '../context/AuthContext'
 import { sessionApi } from '../lib/api'
 import Avatar from '../components/Avatar'
-import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 
 const STATUS_CFG = {
   scheduled: { label: 'Upcoming', textColor: '#818CF8', bg: 'rgba(79,70,229,0.12)', border: 'rgba(79,70,229,0.3)', Icon: Clock },
@@ -19,10 +18,19 @@ export default function Sessions() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const [listRef, listVisible, stagger] = useStaggerAnimation(8)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setSessions([])
+      setLoading(false)
+      setError('')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
     sessionApi.getMySessions()
       .then(res => {
         const raw = res.data?.sessions || res.data || []
@@ -44,7 +52,12 @@ export default function Sessions() {
         })
         setSessions(normalized)
       })
-      .catch(() => setSessions([]))
+      .catch(err => {
+        setSessions([])
+        setError(err.response?.status === 401
+          ? 'Your session expired. Sign in again to load sessions.'
+          : 'Could not load sessions right now.')
+      })
       .finally(() => setLoading(false))
   }, [user])
 
@@ -146,19 +159,22 @@ export default function Sessions() {
           </div>
           <h3 className="font-semibold text-lg mb-2">No sessions found</h3>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {sessions.length === 0
+            {error
+              ? error
+              : sessions.length === 0
               ? 'Accept a match to schedule your first session'
               : 'Try adjusting your search or filter'}
           </p>
         </div>
       ) : (
-        <div ref={listRef} className="space-y-3">
+        <div className="space-y-3">
           {filtered.map((session, i) => {
             const cfg = STATUS_CFG[session.status] || STATUS_CFG.scheduled
             const StatusIcon = cfg.Icon
             const isLive = session.status === 'live'
+            const entranceClass = i % 2 === 0 ? 'animate-slide-left' : 'animate-slide-right'
             return (
-              <div key={session.id || i} className={`reveal ${listVisible ? 'visible' : ''} ${stagger(i)}`}>
+              <div key={session.id || i} className={`${entranceClass} delay-${Math.min(i * 75, 800)}`}>
                 <Link
                   to={`/session/${session.id}`}
                   className="glass-panel card-3d flex items-center gap-4 p-5 transition-all duration-200 group"
