@@ -16,6 +16,23 @@ const DEMO_QUIZ = {
   ],
 }
 
+// Normalize a quiz (real backend shape or demo) into one consistent shape the
+// render code consumes: questions: [{ id, question, options, correct? }].
+// Real questions come under `quiz_questions` with `question_text`; the demo
+// uses `questions` with `question` (+ a local `correct` index for fallback scoring).
+function normalizeQuiz(raw) {
+  const source = raw?.quiz_questions || raw?.questions || []
+  return {
+    ...raw,
+    questions: source.map(q => ({
+      id: q.id,
+      question: q.question_text || q.question,
+      options: q.options || [],
+      correct: q.correct, // present only for the demo quiz; undefined for real
+    })),
+  }
+}
+
 export default function Quiz() {
   const { sessionId } = useParams()
   const navigate = useNavigate()
@@ -40,7 +57,7 @@ export default function Quiz() {
         const res = await quizApi.getQuizBySession(sessionId)
         if (cancelled) return
         const data = res.data?.quiz || res.data
-        setQuiz(data)
+        setQuiz(normalizeQuiz(data))
         setQuizId(data?.id || res.data?.quiz?.id || null)
         setGenerating(false)
         setLoading(false)
@@ -53,7 +70,8 @@ export default function Quiz() {
           return
         }
         // Retries exhausted (or non-404 error) — fall back to demo quiz.
-        setQuiz(DEMO_QUIZ)
+        // quizId stays null, which routes submit through local demo scoring.
+        setQuiz(normalizeQuiz(DEMO_QUIZ))
         setGenerating(false)
         setLoading(false)
       }
@@ -65,7 +83,11 @@ export default function Quiz() {
 
   const handleAnswer = (questionId, idx) => {
     if (submitted) return
-    setAnswers(a => ({ ...a, [questionId]: idx }))
+    // The render gives us the option index; record the option STRING so it can
+    // be submitted directly as answer_given.
+    const question = (quiz?.questions || []).find(q => q.id === questionId)
+    const option = question?.options?.[idx]
+    setAnswers(a => ({ ...a, [questionId]: option }))
   }
 
   const handleSubmit = async () => {
@@ -77,13 +99,28 @@ export default function Quiz() {
     setSubmitting(true)
     try {
       let data
-      try {
-        const res = await quizApi.submitAttempt(quizId, answers)
-        data = res.data
-      } catch {
+      if (quizId) {
+        // Real AI-generated quiz: the backend scores it (questions have no
+        // client-side `correct`). Submit option strings as answer_given.
+        const payload = questions.map(q => ({
+          question_id: q.id,
+          answer_given: answers[q.id],
+        }))
+        const res = await quizApi.submitAttempt(quizId, payload)
+        const r = res.data
+        data = {
+          score: r.score,
+          correct: r.correct_count,
+          total: r.total_questions,
+          passed: r.passed,
+          badge: r.passed && r.score >= 80 ? 'Quiz Master' : null,
+        }
+      } else {
+        // Demo fallback: no real quiz id, so score locally against the demo's
+        // `correct` index (mapped to its option string).
         let correct = 0
         questions.forEach(q => {
-          if (answers[q.id] === q.correct) correct++
+          if (answers[q.id] === q.options?.[q.correct]) correct++
         })
         const score = Math.round((correct / questions.length) * 100)
         data = { score, correct, total: questions.length, passed: score >= 60, badge: score >= 80 ? 'Quiz Master' : null }
@@ -93,6 +130,8 @@ export default function Quiz() {
       setSubmitted(true)
       if (data.passed) toast.success('🎉 Quiz passed! Badge awarded!')
       else toast.error('Quiz failed. Keep practising!')
+    } catch {
+      toast.error('Could not submit quiz. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -286,7 +325,7 @@ export default function Quiz() {
 
             <div className="space-y-3">
               {q.options?.map((option, idx) => {
-                const selected = answers[q.id] === idx
+                const selected = answers[q.id] === option
                 return (
                   <button
                     key={idx}
