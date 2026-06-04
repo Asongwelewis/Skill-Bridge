@@ -13,4 +13,19 @@ const supabase = createClient(supabaseUrl, supabaseSecret, {
   realtime: { transport: ws }
 });
 
+function getSupabaseDiagnostics() {
+  const secretLength = supabaseSecret.length;
+  const secretFingerprint = secretLength > 8
+    ? `${supabaseSecret.slice(0, 4)}...${supabaseSecret.slice(-4)}`
+    : 'redacted';
+
+  return {
+    supabaseUrl,
+    hasSupabaseSecret: Boolean(supabaseSecret),
+    supabaseSecretLength: secretLength,
+    supabaseSecretFingerprint: secretFingerprint,
+  };
+}
+
 module.exports = supabase;
+module.exports.getSupabaseDiagnostics = getSupabaseDiagnostics;

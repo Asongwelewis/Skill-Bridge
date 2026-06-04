@@ -4,6 +4,7 @@ const helmet  = require('helmet');
 const cors    = require('cors');
 const morgan  = require('morgan');
 const { startKafkaProducer } = require('./kafka/producer');
+const { getSupabaseDiagnostics } = require('./supabaseClient');
 
 const sessionRoutes = require('./routes/sessions');
 
@@ -21,7 +22,8 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'session-service',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    supabase: getSupabaseDiagnostics()
   });
 });
 
