@@ -31,13 +31,15 @@ export default function Matches() {
         const normalized = raw.map(m => ({
           id:            m.id,
           status:        m.status || 'pending',
-          skill:         m.skill_name || m.skill || '',
+          skill:         (Array.isArray(m.skills) ? m.skills[0] : m.skills)?.name
+                        || m.skill_name
+                        || m.skill
+                        || '',
           score:         m.match_score || m.score || 0,
           matchedUser: {
             name:  m.teacher_id === user.id
               ? (m.learner?.username || m.learner?.full_name || m.learner_id)
               : (m.teacher?.username || m.teacher?.full_name || m.teacher_id),
-            email: m.teacher_id === user.id ? m.learner?.email : m.teacher?.email,
           },
         }))
         setMatches(normalized)

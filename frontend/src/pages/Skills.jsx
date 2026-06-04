@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Plus, Trash2, Zap, BookOpen, Repeat, Star, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { userApi } from '../lib/api'
+import { userApi, matchingApi } from '../lib/api'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 import toast from 'react-hot-toast'
 
@@ -67,6 +67,13 @@ export default function Skills() {
         proficiency_level: form.proficiency,
       })
       toast.success('Skill added!')
+      if (user?.id) {
+        try {
+          await matchingApi.runMatching(user.id)
+        } catch {
+          // Matching is best-effort; the skill is still saved.
+        }
+      }
       setShowModal(false)
       setForm({ name: '', category: '', mode: 'both', proficiency: 3 })
       load()

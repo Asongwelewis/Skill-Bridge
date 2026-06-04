@@ -29,7 +29,10 @@ export default function Sessions() {
         const normalized = raw.map(s => ({
           id:          s.id,
           status:      s.status || 'scheduled',
-          topic:       s.skill_topic || s.topic || 'Learning Session',
+          topic:       (Array.isArray(s.matches) ? s.matches[0] : s.matches)?.skills?.name
+                       || s.skill_topic
+                       || s.topic
+                       || 'Learning Session',
           scheduledAt: s.scheduled_at || s.scheduledAt,
           duration:    s.duration_seconds ? Math.floor(s.duration_seconds / 60) : null,
           webrtcRoomId: s.webrtc_room_id,

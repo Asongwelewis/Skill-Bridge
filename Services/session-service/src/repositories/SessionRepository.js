@@ -21,8 +21,8 @@ class SessionRepository {
         *,
         matches(
           skill_id, skills(name),
-          learner:profiles!matches_learner_id_fkey(id, username, avatar_url),
-          teacher:profiles!matches_teacher_id_fkey(id, username, avatar_url)
+          learner:profiles!matches_learner_id_fkey(id, username, full_name, avatar_url),
+          teacher:profiles!matches_teacher_id_fkey(id, username, full_name, avatar_url)
         )
       `)
       .eq('id', id)
@@ -51,8 +51,8 @@ class SessionRepository {
         *,
         matches(
           skill_id, skills(name),
-          learner:profiles!matches_learner_id_fkey(id, username, avatar_url),
-          teacher:profiles!matches_teacher_id_fkey(id, username, avatar_url)
+          learner:profiles!matches_learner_id_fkey(id, username, full_name, avatar_url),
+          teacher:profiles!matches_teacher_id_fkey(id, username, full_name, avatar_url)
         )
       `)
       .in('match_id', matchIds)
@@ -78,8 +78,8 @@ class SessionRepository {
         *,
         matches(
           skill_id,
-          learner:profiles!matches_learner_id_fkey(id, username, avatar_url),
-          teacher:profiles!matches_teacher_id_fkey(id, username, avatar_url)
+          learner:profiles!matches_learner_id_fkey(id, username, full_name, avatar_url),
+          teacher:profiles!matches_teacher_id_fkey(id, username, full_name, avatar_url)
         )
       `)
       .single();

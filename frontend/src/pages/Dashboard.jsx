@@ -163,11 +163,11 @@ export default function Dashboard() {
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-indigo-600/20 flex items-center justify-center text-indigo-400 text-xs font-bold">
-                          {(m.teacher?.username || m.learner?.username || 'P')[0]?.toUpperCase()}
+                          {(m.teacher?.username || m.teacher?.full_name || m.learner?.username || m.learner?.full_name || 'P')[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{m.teacher?.username || m.learner?.username || 'Peer Learner'}</p>
-                          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{m.skill_name || 'Skill exchange'}</p>
+                          <p className="text-sm font-medium">{m.teacher?.username || m.teacher?.full_name || m.learner?.username || m.learner?.full_name || 'Peer Learner'}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{m.skills?.name || m.skill_name || 'Skill exchange'}</p>
                         </div>
                       </div>
                       <StatusBadge status={m.status} />
@@ -200,7 +200,7 @@ export default function Dashboard() {
                           <Video size={14} className="text-emerald-400" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{s.skill_topic || s.topic || 'Learning Session'}</p>
+                          <p className="text-sm font-medium">{(Array.isArray(s.matches) ? s.matches[0] : s.matches)?.skills?.name || s.skill_topic || s.topic || 'Learning Session'}</p>
                           <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
                             {s.scheduled_at ? new Date(s.scheduled_at).toLocaleDateString() : 'Scheduled'}
                           </p>

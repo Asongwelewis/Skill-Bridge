@@ -40,11 +40,65 @@ async function getMySkills(req, res) {
 
 // POST /api/users/skills/me — add skill to user's profile
 async function addMySkill(req, res) {
-  const { skill_id, role, proficiency_level } = req.body;
+  const { skill_id, skill_name, category, role, proficiency_level } = req.body;
+
+  const validRoles = ['teach', 'learn', 'both'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: 'role must be teach, learn, or both' });
+  }
+
+  let finalSkillId = skill_id;
+
+  if (!finalSkillId && skill_name) {
+    const skillLookup = await supabase
+      .from('skills')
+      .select('id')
+      .ilike('name', skill_name.trim())
+      .limit(1);
+
+    if (skillLookup.error) return res.status(400).json({ error: skillLookup.error.message });
+
+    const existingSkill = skillLookup.data?.[0];
+    if (existingSkill) {
+      finalSkillId = existingSkill.id;
+    } else {
+      const { data: newSkill, error: skillError } = await supabase
+        .from('skills')
+        .insert({ name: skill_name.trim(), category: category || 'General' })
+        .select('id')
+        .single();
+
+      if (skillError) return res.status(400).json({ error: skillError.message });
+      finalSkillId = newSkill.id;
+    }
+  }
+
+  if (!finalSkillId) {
+    return res.status(400).json({ error: 'skill_id or skill_name is required' });
+  }
+
+  const { data: existingSkillLink, error: existingLinkError } = await supabase
+    .from('user_skills')
+    .select('id')
+    .eq('user_id', req.user.id)
+    .eq('skill_id', finalSkillId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (existingLinkError) return res.status(400).json({ error: existingLinkError.message });
+  if (existingSkillLink) {
+    return res.status(409).json({ error: 'You already have this skill in your profile' });
+  }
 
   const { data, error } = await supabase
     .from('user_skills')
-    .insert({ user_id: req.user.id, skill_id, role, proficiency_level })
+    .insert({
+      user_id: req.user.id,
+      skill_id: finalSkillId,
+      role,
+      proficiency_level: proficiency_level || 3,
+      is_active: true
+    })
     .select('*, skills(*)')
     .single();
 

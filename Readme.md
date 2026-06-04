@@ -368,6 +368,8 @@ All services route through Traefik at `http://skillbridge-sen3244.duckdns.org`.
 
 </details>
 
+Implementation note: `POST /api/users/skills/me` now accepts either `skill_id` or `skill_name` plus `category` so the frontend can create and attach a skill in one flow. The session search route must remain above `/:id` in `Services/session-service/src/routes/sessions.js`.
+
 <details>
 <summary><b>🎯 Matching Service — <code>/api/matching</code></b></summary>
 

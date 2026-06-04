@@ -71,6 +71,13 @@ export default function Session() {
   }
 
   const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  const sessionMatch = Array.isArray(session?.matches) ? session.matches[0] : session?.matches
+  const sessionTopic = sessionMatch?.skills?.name || session?.skill_topic || session?.topic || 'Learning Session'
+  const peerName = sessionMatch
+    ? (sessionMatch.learner_id === user?.id
+        ? (sessionMatch.teacher?.username || sessionMatch.teacher?.full_name || 'Peer Learner')
+        : (sessionMatch.learner?.username || sessionMatch.learner?.full_name || 'Peer Learner'))
+    : 'Peer Learner'
 
   const surface = isDark ? 'rgba(15,14,26,0.95)' : 'rgba(243,244,255,0.97)'
   const videoBg = isDark ? '#0a091a' : '#e8eaff'
@@ -98,7 +105,7 @@ export default function Session() {
             <Brain size={15} className="text-white" />
           </div>
           <div>
-            <p className="font-semibold text-sm">{session?.topic || 'Learning Session'}</p>
+            <p className="font-semibold text-sm">{sessionTopic}</p>
             <div className="flex items-center gap-2">
               <span className={`flex items-center gap-1 text-xs ${connected ? 'text-emerald-400' : 'text-amber-400'}`}>
                 {connected ? <Wifi size={11} /> : <WifiOff size={11} />}
@@ -141,7 +148,7 @@ export default function Session() {
             )}
             <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-white text-xs font-medium"
               style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
-              {session?.participants?.[1] || 'Peer Learner'}
+              {peerName}
             </div>
           </div>
 

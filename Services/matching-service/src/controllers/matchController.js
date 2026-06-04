@@ -62,7 +62,12 @@ async function getUserMatches(req, res) {
 
   let query = supabase
     .from('matches')
-    .select('*, skills(name, category)')
+    .select(`
+      *,
+      skills(name, category),
+      learner:profiles!matches_learner_id_fkey(id, username, full_name, avatar_url),
+      teacher:profiles!matches_teacher_id_fkey(id, username, full_name, avatar_url)
+    `)
     .or(`learner_id.eq.${userId},teacher_id.eq.${userId}`)
     .order('match_score', { ascending: false });
 
@@ -82,8 +87,8 @@ async function getMyMatches(req, res) {
     .select(`
       *,
       skills(name, category),
-      learner:profiles!matches_learner_id_fkey(id, username, avatar_url),
-      teacher:profiles!matches_teacher_id_fkey(id, username, avatar_url)
+      learner:profiles!matches_learner_id_fkey(id, username, full_name, avatar_url),
+      teacher:profiles!matches_teacher_id_fkey(id, username, full_name, avatar_url)
     `)
     .or(`learner_id.eq.${req.user.id},teacher_id.eq.${req.user.id}`)
     .order('matched_at', { ascending: false });
