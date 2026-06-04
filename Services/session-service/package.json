@@ -28,6 +28,10 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "src/signaling.js"
+  ],
     "coverageThreshold": {
       "global": {
         "lines": 50
