@@ -55,10 +55,30 @@ async function getMyProfile(req, res) {
 // PUT /api/users/profiles/me
 async function updateProfile(req, res) {
   const { username, full_name, bio, avatar_url, timezone } = req.body;
+  const { data: existingProfile, error: existingError } = await supabase
+    .from('profiles')
+    .select('username, full_name, bio, avatar_url, timezone')
+    .eq('id', req.user.id)
+    .single();
+
+  if (existingError) return res.status(404).json({ error: 'Profile not found' });
+
+  const googleAvatar =
+    req.user?.user_metadata?.avatar_url ||
+    req.user?.user_metadata?.picture ||
+    null;
+
+  const updateData = {
+    username: username ?? existingProfile?.username ?? req.user?.email?.split('@')[0],
+    full_name: full_name ?? existingProfile?.full_name ?? req.user?.user_metadata?.full_name ?? req.user?.user_metadata?.name ?? null,
+    bio: bio ?? existingProfile?.bio ?? null,
+    avatar_url: avatar_url ?? existingProfile?.avatar_url ?? googleAvatar,
+    timezone: timezone ?? existingProfile?.timezone ?? 'UTC',
+  };
 
   const { data, error } = await supabase
     .from('profiles')
-    .update({ username, full_name, bio, avatar_url, timezone })
+    .update(updateData)
     .eq('id', req.user.id)
     .select()
     .single();

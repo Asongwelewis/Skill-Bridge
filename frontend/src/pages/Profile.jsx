@@ -63,6 +63,7 @@ export default function Profile() {
   const sessionsCount = profile?.sessionsCount || 0
   const name = form.full_name || user?.email?.split('@')[0] || 'Learner'
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
 
   const inputStyle = {
     background: 'rgba(255,255,255,0.06)',
@@ -166,9 +167,17 @@ export default function Profile() {
             <div className="flex items-end justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-[1.3rem_1.8rem_1.3rem_1.8rem] bg-indigo-500 flex items-center justify-center text-white text-2xl font-bold border-4 border-white/15 shadow-2xl shadow-indigo-500/25">
-                    {initials}
-                  </div>
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-[1.3rem_1.8rem_1.3rem_1.8rem] object-cover border-4 border-white/15 shadow-2xl shadow-indigo-500/25"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-[1.3rem_1.8rem_1.3rem_1.8rem] bg-indigo-500 flex items-center justify-center text-white text-2xl font-bold border-4 border-white/15 shadow-2xl shadow-indigo-500/25">
+                      {initials}
+                    </div>
+                  )}
                   <button
                     className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
                     style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.14)', color: 'var(--text-muted)' }}

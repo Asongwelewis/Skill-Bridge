@@ -104,9 +104,12 @@ export default function Sidebar() {
       <div className="p-3 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         {/* User chip */}
         {!collapsed && user && (
-          <div className="glass-chip mb-1 justify-between">
-            <p className="text-white text-xs font-semibold truncate leading-tight">{user.email}</p>
-            <p className="text-indigo-300/70 text-xs mt-0.5">Learner</p>
+          <div className="glass-chip mb-1 justify-between gap-3">
+            <UserAvatar user={user} />
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-xs font-semibold truncate leading-tight">{user.email}</p>
+              <p className="text-indigo-300/70 text-xs mt-0.5">Learner</p>
+            </div>
           </div>
         )}
 
@@ -171,5 +174,27 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+  )
+}
+
+function UserAvatar({ user }) {
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+  const label = (user?.user_metadata?.full_name || user?.email || 'U')
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  return avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt="Profile"
+      className="w-8 h-8 rounded-[0.9rem_1rem_0.9rem_1rem] object-cover shrink-0 border border-white/10"
+    />
+  ) : (
+    <div className="w-8 h-8 rounded-[0.9rem_1rem_0.9rem_1rem] bg-white/10 border border-white/10 flex items-center justify-center text-white text-[11px] font-semibold shrink-0">
+      {label}
+    </div>
   )
 }

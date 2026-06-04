@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Monitor, Brain, Users, Clock, Wifi, WifiOff, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { sessionApi } from '../lib/api'
+import Avatar from '../components/Avatar'
 import toast from 'react-hot-toast'
 
 export default function Session() {
@@ -81,11 +82,13 @@ export default function Session() {
   const fmt = value => `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`
   const sessionMatch = Array.isArray(session?.matches) ? session.matches[0] : session?.matches
   const sessionTopic = sessionMatch?.skills?.name || session?.skill_topic || session?.topic || 'Learning Session'
-  const peerName = sessionMatch
-    ? (sessionMatch.learner_id === user?.id
-      ? (sessionMatch.teacher?.username || sessionMatch.teacher?.full_name || 'Peer Learner')
-      : (sessionMatch.learner?.username || sessionMatch.learner?.full_name || 'Peer Learner'))
-    : 'Peer Learner'
+  const peer = sessionMatch
+    ? (sessionMatch.learner_id === user?.id ? sessionMatch.teacher : sessionMatch.learner)
+    : null
+  const peerName = peer?.full_name || peer?.username || 'Peer Learner'
+  const peerAvatar = peer?.avatar_url || null
+  const myName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You'
+  const myAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
 
   if (loading) {
     return (
@@ -155,6 +158,8 @@ export default function Session() {
               accent="indigo"
               emptyText="Waiting for peer to join…"
               connected={connected}
+              avatarUrl={peerAvatar}
+              avatarName={peerName}
             />
 
             <VideoTile
@@ -165,6 +170,8 @@ export default function Session() {
               emptyText="Camera is off"
               connected
               muted
+              avatarUrl={myAvatar}
+              avatarName={myName}
             />
           </section>
 
@@ -211,7 +218,7 @@ export default function Session() {
   )
 }
 
-function VideoTile({ label, videoRef, showVideo, accent, emptyText, connected, muted = false }) {
+function VideoTile({ label, videoRef, showVideo, accent, emptyText, connected, muted = false, avatarUrl, avatarName }) {
   const accentBg = accent === 'emerald' ? 'rgba(16,185,129,0.16)' : 'rgba(79,70,229,0.16)'
   const accentColor = accent === 'emerald' ? '#34d399' : '#818CF8'
 
@@ -226,19 +233,29 @@ function VideoTile({ label, videoRef, showVideo, accent, emptyText, connected, m
       />
 
       {!showVideo && (
-        <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
-          <div className="w-16 h-16 rounded-[1.25rem] bg-white/8 border border-white/10 flex items-center justify-center">
-            <VideoOff size={24} style={{ color: 'var(--text-subtle)' }} />
-          </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          {avatarUrl ? (
+            <Avatar src={avatarUrl} name={avatarName} size={72} shape="1.4rem 1.8rem 1.4rem 1.8rem" className="border-2 border-white/15 shadow-xl" />
+          ) : (
+            <div className="w-16 h-16 rounded-[1.25rem] bg-white/8 border border-white/10 flex items-center justify-center">
+              <VideoOff size={24} style={{ color: 'var(--text-subtle)' }} />
+            </div>
+          )}
         </div>
       )}
 
       {!connected && (
         <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
-          <div className="w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-3 animate-float"
-            style={{ background: accentBg }}>
-            <Users size={28} style={{ color: accentColor }} />
-          </div>
+          {avatarUrl ? (
+            <div className="mb-3 animate-float">
+              <Avatar src={avatarUrl} name={avatarName} size={72} shape="1.4rem 1.8rem 1.4rem 1.8rem" className="border-2 border-white/15 shadow-xl" />
+            </div>
+          ) : (
+            <div className="w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-3 animate-float"
+              style={{ background: accentBg }}>
+              <Users size={28} style={{ color: accentColor }} />
+            </div>
+          )}
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{emptyText}</p>
           <div className="flex gap-1 mt-3">
             {Array(3).fill(0).map((_, i) => (

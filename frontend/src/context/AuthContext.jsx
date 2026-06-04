@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { userApi } from '../lib/api'
 
 const AuthContext = createContext(null)
 
@@ -23,6 +24,44 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+
+    const googleAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || null
+
+    if (!googleAvatar && !fullName) return
+
+    let cancelled = false
+
+    const syncProfile = async () => {
+      try {
+        const res = await userApi.getMyProfile()
+        const profile = res.data?.user || res.data
+        const shouldUpdateAvatar = googleAvatar && !profile?.avatar_url
+        const shouldUpdateName = fullName && !profile?.full_name
+
+        if (!shouldUpdateAvatar && !shouldUpdateName) return
+
+        await userApi.updateProfile(user.id, {
+          username: profile?.username || user.email?.split('@')[0] || user.id,
+          full_name: shouldUpdateName ? fullName : profile?.full_name,
+          bio: profile?.bio || '',
+          avatar_url: shouldUpdateAvatar ? googleAvatar : profile?.avatar_url,
+          timezone: profile?.timezone || 'UTC',
+        })
+      } catch {
+        if (!cancelled) return
+      }
+    }
+
+    syncProfile()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user])
 
   const signOut = async () => {
     await supabase.auth.signOut()

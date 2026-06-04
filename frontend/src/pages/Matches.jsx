@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Users, CheckCircle, XCircle, Clock, Video, Star, Zap, ArrowRight } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { matchingApi, sessionApi } from '../lib/api'
+import Avatar from '../components/Avatar'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 import toast from 'react-hot-toast'
 
@@ -27,17 +28,20 @@ export default function Matches() {
     matchingApi.getMyMatches()
       .then(res => {
         const raw = res.data?.matches || res.data || []
-        const normalized = raw.map(m => ({
-          id: m.id,
-          status: m.status || 'pending',
-          skill: (Array.isArray(m.skills) ? m.skills[0] : m.skills)?.name || m.skill_name || m.skill || '',
-          score: m.match_score || m.score || 0,
-          matchedUser: {
-            name: m.teacher_id === user.id
-              ? (m.learner?.username || m.learner?.full_name || m.learner_id)
-              : (m.teacher?.username || m.teacher?.full_name || m.teacher_id),
-          },
-        }))
+        const normalized = raw.map(m => {
+          const peer = m.teacher_id === user.id ? m.learner : m.teacher
+          return {
+            id: m.id,
+            status: m.status || 'pending',
+            skill: (Array.isArray(m.skills) ? m.skills[0] : m.skills)?.name || m.skill_name || m.skill || '',
+            score: m.match_score || m.score || 0,
+            matchedUser: {
+              name: peer?.full_name || peer?.username
+                || (m.teacher_id === user.id ? m.learner_id : m.teacher_id),
+              avatar_url: peer?.avatar_url || null,
+            },
+          }
+        })
         setMatches(normalized)
       })
       .catch(() => setMatches([]))
@@ -172,9 +176,12 @@ export default function Matches() {
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(129,140,248,0.35)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'}>
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-[1.15rem_1.45rem_1.15rem_1.45rem] bg-indigo-500/15 flex items-center justify-center text-indigo-300 font-bold text-lg shrink-0">
-                      {(match.matchedUser?.name || 'P')[0]?.toUpperCase()}
-                    </div>
+                    <Avatar
+                      src={match.matchedUser?.avatar_url}
+                      name={match.matchedUser?.name || 'Peer Learner'}
+                      size={48}
+                      shape="1.15rem 1.45rem 1.15rem 1.45rem"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <p className="font-semibold">{match.matchedUser?.name || 'Peer Learner'}</p>

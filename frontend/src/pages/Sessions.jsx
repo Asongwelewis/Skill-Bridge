@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Video, Clock, CheckCircle, Calendar, ArrowRight, Search, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { sessionApi } from '../lib/api'
+import Avatar from '../components/Avatar'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 
 const STATUS_CFG = {
@@ -25,14 +26,22 @@ export default function Sessions() {
     sessionApi.getMySessions()
       .then(res => {
         const raw = res.data?.sessions || res.data || []
-        const normalized = raw.map(s => ({
-          id: s.id,
-          status: s.status || 'scheduled',
-          topic: (Array.isArray(s.matches) ? s.matches[0] : s.matches)?.skills?.name || s.skill_topic || s.topic || 'Learning Session',
-          scheduledAt: s.scheduled_at || s.scheduledAt,
-          duration: s.duration_seconds ? Math.floor(s.duration_seconds / 60) : null,
-          webrtcRoomId: s.webrtc_room_id,
-        }))
+        const normalized = raw.map(s => {
+          const match = Array.isArray(s.matches) ? s.matches[0] : s.matches
+          const peer = match
+            ? (match.teacher_id === user.id ? match.learner : match.teacher)
+            : null
+          return {
+            id: s.id,
+            status: s.status || 'scheduled',
+            topic: match?.skills?.name || s.skill_topic || s.topic || 'Learning Session',
+            scheduledAt: s.scheduled_at || s.scheduledAt,
+            duration: s.duration_seconds ? Math.floor(s.duration_seconds / 60) : null,
+            webrtcRoomId: s.webrtc_room_id,
+            peerName: peer?.full_name || peer?.username || null,
+            peerAvatar: peer?.avatar_url || null,
+          }
+        })
         setSessions(normalized)
       })
       .catch(() => setSessions([]))
@@ -162,10 +171,19 @@ export default function Sessions() {
                     e.currentTarget.style.transform = 'translateY(0)'
                   }}
                 >
-                  <div className="w-11 h-11 rounded-[1rem_1.25rem_1rem_1.25rem] flex items-center justify-center shrink-0"
-                    style={{ background: isLive ? 'rgba(16,185,129,0.16)' : 'rgba(79,70,229,0.14)' }}>
-                    <StatusIcon size={18} style={{ color: isLive ? '#34d399' : '#818CF8' }} />
-                  </div>
+                  {session.peerName || session.peerAvatar ? (
+                    <Avatar
+                      src={session.peerAvatar}
+                      name={session.peerName || 'Peer Learner'}
+                      size={44}
+                      shape="1rem 1.25rem 1rem 1.25rem"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-[1rem_1.25rem_1rem_1.25rem] flex items-center justify-center shrink-0"
+                      style={{ background: isLive ? 'rgba(16,185,129,0.16)' : 'rgba(79,70,229,0.14)' }}>
+                      <StatusIcon size={18} style={{ color: isLive ? '#34d399' : '#818CF8' }} />
+                    </div>
+                  )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -181,6 +199,9 @@ export default function Sessions() {
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-subtle)' }}>
+                      {session.peerName && (
+                        <span className="truncate">with {session.peerName}</span>
+                      )}
                       <span className="flex items-center gap-1">
                         <Calendar size={11} />
                         {session.scheduledAt ? new Date(session.scheduledAt).toLocaleString() : 'Not scheduled'}

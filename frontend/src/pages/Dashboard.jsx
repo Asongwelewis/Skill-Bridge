@@ -4,6 +4,7 @@ import { Zap, Users, Video, Award, ArrowRight, Clock, TrendingUp, Bell } from 'l
 import { useAuth } from '../context/AuthContext'
 import { matchingApi, sessionApi, notificationApi } from '../lib/api'
 import StatCard from '../components/StatCard'
+import Avatar from '../components/Avatar'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 
 export default function Dashboard() {
@@ -39,7 +40,13 @@ export default function Dashboard() {
   const pendingMatches = matches.filter(m => m.status === 'pending')
   const upcomingSessions = sessions.filter(s => s.status === 'scheduled' || s.status === 'live')
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner'
+  const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
   const unreadNotifs = notifications.filter(n => !n.read)
+
+  const peerOf = (m) => {
+    const peer = m.teacher_id === user?.id ? m.learner : m.teacher
+    return peer || m.teacher || m.learner || null
+  }
 
   const quickActions = [
     { to: '/skills', icon: Zap, label: 'Add Skills', desc: 'Tell us what you know', color: 'indigo' },
@@ -68,17 +75,26 @@ export default function Dashboard() {
 
           <div className="relative z-10 flex flex-col gap-6">
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="glass-chip inline-flex items-center gap-2 mb-4">
-                  <TrendingUp size={13} />
-                  Workspace overview
+              <div className="flex items-start gap-4">
+                <Avatar
+                  src={userAvatar}
+                  name={userName}
+                  size={52}
+                  shape="1.1rem 1.5rem 1.1rem 1.5rem"
+                  className="mt-1 border-2 border-white/15 shadow-lg shadow-indigo-500/20"
+                />
+                <div>
+                  <div className="glass-chip inline-flex items-center gap-2 mb-4">
+                    <TrendingUp size={13} />
+                    Workspace overview
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">
+                    Good morning, <span className="text-indigo-400">{userName}</span>
+                  </h1>
+                  <p className="max-w-xl text-sm md:text-base" style={{ color: 'var(--text-muted)' }}>
+                    Your matches, sessions, and learning momentum all live here in one calm workspace.
+                  </p>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">
-                  Good morning, <span className="text-indigo-400">{userName}</span>
-                </h1>
-                <p className="max-w-xl text-sm md:text-base" style={{ color: 'var(--text-muted)' }}>
-                  Your matches, sessions, and learning momentum all live here in one calm workspace.
-                </p>
               </div>
 
               {unreadNotifs.length > 0 && (
@@ -224,23 +240,30 @@ export default function Dashboard() {
             : matches.length === 0
               ? <EmptyState icon={Users} msg="No matches yet" hint="Add skills to get matched →" to="/skills" />
               : <div className="space-y-2">
-                  {matches.slice(0, 4).map((m, i) => (
+                  {matches.slice(0, 4).map((m, i) => {
+                    const peer = peerOf(m)
+                    const peerName = peer?.full_name || peer?.username || 'Peer Learner'
+                    return (
                     <div key={m.id || i}
                       className="flex items-center justify-between p-3 rounded-[1.15rem] transition-all duration-150"
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-[1rem_1.25rem_1rem_1.25rem] bg-indigo-500/15 flex items-center justify-center text-indigo-300 text-xs font-bold">
-                          {(m.teacher?.username || m.teacher?.full_name || m.learner?.username || m.learner?.full_name || 'P')[0]?.toUpperCase()}
-                        </div>
+                        <Avatar
+                          src={peer?.avatar_url}
+                          name={peerName}
+                          size={36}
+                          shape="1rem 1.25rem 1rem 1.25rem"
+                        />
                         <div>
-                          <p className="text-sm font-medium">{m.teacher?.username || m.teacher?.full_name || m.learner?.username || m.learner?.full_name || 'Peer Learner'}</p>
+                          <p className="text-sm font-medium">{peerName}</p>
                           <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{m.skills?.name || m.skill_name || 'Skill exchange'}</p>
                         </div>
                       </div>
                       <StatusBadge status={m.status} />
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
           }
         </div>
