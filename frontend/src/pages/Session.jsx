@@ -9,7 +9,27 @@ import toast from 'react-hot-toast'
 
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  {
+    urls: 'turn:global.relay.metered.ca:80',
+    username: '78b8400a474fb68e68d3f472',
+    credential: 'MTUu8p1AmTPcl/J2',
+  },
+  {
+    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+    username: '78b8400a474fb68e68d3f472',
+    credential: 'MTUu8p1AmTPcl/J2',
+  },
+  {
+    urls: 'turn:global.relay.metered.ca:443',
+    username: '78b8400a474fb68e68d3f472',
+    credential: 'MTUu8p1AmTPcl/J2',
+  },
+  {
+    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+    username: '78b8400a474fb68e68d3f472',
+    credential: 'MTUu8p1AmTPcl/J2',
+  },
 ]
 
 export default function Session() {
@@ -115,7 +135,7 @@ export default function Session() {
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream
 
       // 2. Peer connection
-      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
+      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS, iceCandidatePoolSize: 10 })
       pcRef.current = pc
       localStream.getTracks().forEach(track => pc.addTrack(track, localStream))
 
