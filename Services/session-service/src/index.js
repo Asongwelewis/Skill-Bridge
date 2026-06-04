@@ -1,9 +1,11 @@
 require('dotenv').config();
+const http    = require('http');
 const express = require('express');
 const helmet  = require('helmet');
 const cors    = require('cors');
 const morgan  = require('morgan');
 const { startKafkaProducer } = require('./kafka/producer');
+const { attachSignaling } = require('./signaling');
 const supabaseClient = require('./supabaseClient');
 
 const sessionRoutes = require('./routes/sessions');
@@ -48,15 +50,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', message: err.message });
 });
 
+// ── HTTP server + WebRTC signaling ───────────────────────────
+const server = http.createServer(app);
+attachSignaling(server);
+
 // ── Start ────────────────────────────────────────────────────
-app.listen(PORT, async () => {
-  console.log(`Session Service running on port ${PORT}`);
-  try {
-    await startKafkaProducer();
-    console.log('Kafka producer connected');
-  } catch (err) {
-    console.error('Kafka producer failed to start:', err.message);
-  }
-});
+if (require.main === module) {
+  server.listen(PORT, async () => {
+    console.log(`Session Service running on port ${PORT}`);
+    try {
+      await startKafkaProducer();
+      console.log('Kafka producer connected');
+    } catch (err) {
+      console.error('Kafka producer failed to start:', err.message);
+    }
+  });
+}
 
 module.exports = app;

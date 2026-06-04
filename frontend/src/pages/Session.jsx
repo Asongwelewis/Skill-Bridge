@@ -3,8 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Monitor, Brain, Users, Clock, Wifi, WifiOff, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { sessionApi } from '../lib/api'
+import { supabase } from '../lib/supabase'
 import Avatar from '../components/Avatar'
 import toast from 'react-hot-toast'
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+]
 
 export default function Session() {
   const { id } = useParams()
@@ -14,42 +20,185 @@ export default function Session() {
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
   const streamRef = useRef(null)
+  const pcRef = useRef(null)
+  const wsRef = useRef(null)
+  const screenStreamRef = useRef(null)
 
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [camOn, setCamOn] = useState(true)
   const [micOn, setMicOn] = useState(true)
   const [connected, setConnected] = useState(false)
+  const [peerPresent, setPeerPresent] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [ending, setEnding] = useState(false)
 
   useEffect(() => {
-    sessionApi.getSession(id)
-      .then(res => setSession(res.data?.session || res.data))
-      .catch(() => toast.error('Session not found'))
-      .finally(() => setLoading(false))
-  }, [id])
+    let active = true
+
+    const load = async () => {
+      try {
+        const res = await sessionApi.getSession(id)
+        let data = res.data?.session || res.data
+
+        // The host puts the session "live" on entering the room so it shows
+        // as an ongoing session and can later be ended (end requires 'live').
+        if (data?.status === 'scheduled' && data?.host_id === user?.id) {
+          try {
+            const started = await sessionApi.startSession(id)
+            data = started.data?.session || started.data || { ...data, status: 'live' }
+          } catch {
+            // Non-host or already started — keep whatever we loaded.
+          }
+        }
+
+        if (active) setSession(data)
+      } catch {
+        if (active) toast.error('Session not found')
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    if (user) load()
+    return () => { active = false }
+  }, [id, user])
 
   useEffect(() => {
     const timer = setInterval(() => setElapsed(value => value + 1), 1000)
     return () => clearInterval(timer)
   }, [])
 
+  // Tears down the call: notify the peer, close the socket + connection,
+  // and stop every local track (camera, mic, screen share). Idempotent.
+  const teardown = () => {
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'leave' }))
+      }
+    } catch { /* socket already gone */ }
+    try { wsRef.current?.close() } catch { /* noop */ }
+    wsRef.current = null
+    try { pcRef.current?.close() } catch { /* noop */ }
+    pcRef.current = null
+    screenStreamRef.current?.getTracks().forEach(track => track.stop())
+    screenStreamRef.current = null
+    streamRef.current?.getTracks().forEach(track => track.stop())
+    streamRef.current = null
+  }
+
   useEffect(() => {
-    const startMedia = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        streamRef.current = stream
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream
-        setTimeout(() => setConnected(true), 1400)
-      } catch {
-        toast.error('Could not access camera/microphone — check browser permissions.')
+    let active = true
+
+    const sendSignal = (payload) => {
+      const ws = wsRef.current
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(payload))
       }
     }
 
-    startMedia()
-    return () => streamRef.current?.getTracks().forEach(track => track.stop())
-  }, [])
+    const start = async () => {
+      // 1. Local camera + mic
+      let localStream
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      } catch {
+        toast.error('Could not access camera/microphone — check browser permissions.')
+        return
+      }
+      if (!active) {
+        localStream.getTracks().forEach(track => track.stop())
+        return
+      }
+      streamRef.current = localStream
+      if (localVideoRef.current) localVideoRef.current.srcObject = localStream
+
+      // 2. Peer connection
+      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
+      pcRef.current = pc
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream))
+
+      pc.ontrack = (event) => {
+        const [remoteStream] = event.streams
+        if (remoteVideoRef.current && remoteStream) {
+          remoteVideoRef.current.srcObject = remoteStream
+        }
+        if (active) setPeerPresent(true)
+      }
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          sendSignal({ type: 'ice-candidate', candidate: event.candidate })
+        }
+      }
+
+      pc.onconnectionstatechange = () => {
+        if (!active) return
+        const state = pc.connectionState
+        if (state === 'connected') setConnected(true)
+        else if (state === 'disconnected' || state === 'failed' || state === 'closed') setConnected(false)
+      }
+
+      // 3. Signaling socket
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      const token = authSession?.access_token
+      if (!token) {
+        toast.error('You are not signed in — cannot join the call.')
+        return
+      }
+      if (!active) return
+
+      const apiBase = import.meta.env.VITE_API_URL || 'https://skillbridge-sen3244.duckdns.org'
+      const wsUrl = `${apiBase.replace(/^http/, 'ws')}/ws/signal?token=${encodeURIComponent(token)}&room=${encodeURIComponent(id)}`
+      const ws = new WebSocket(wsUrl)
+      wsRef.current = ws
+
+      ws.onmessage = async (event) => {
+        let msg
+        try { msg = JSON.parse(event.data) } catch { return }
+
+        try {
+          if (msg.type === 'joined') {
+            if (msg.isInitiator) {
+              const offer = await pc.createOffer()
+              await pc.setLocalDescription(offer)
+              sendSignal({ type: 'offer', sdp: pc.localDescription })
+            }
+          } else if (msg.type === 'offer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
+            const answer = await pc.createAnswer()
+            await pc.setLocalDescription(answer)
+            sendSignal({ type: 'answer', sdp: pc.localDescription })
+          } else if (msg.type === 'answer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
+          } else if (msg.type === 'ice-candidate') {
+            if (msg.candidate) {
+              try { await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)) } catch { /* ignore */ }
+            }
+          } else if (msg.type === 'peer-joined') {
+            if (active) setPeerPresent(true)
+          } else if (msg.type === 'peer-left') {
+            if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
+            if (active) {
+              setPeerPresent(false)
+              setConnected(false)
+            }
+            toast('Your peer left the session.')
+          } else if (msg.type === 'room-full') {
+            toast.error('This session room is already full.')
+          }
+        } catch { /* ignore malformed signaling */ }
+      }
+    }
+
+    start()
+
+    return () => {
+      active = false
+      teardown()
+    }
+  }, [id])
 
   const toggleCam = () => {
     const track = streamRef.current?.getVideoTracks()[0]
@@ -67,6 +216,49 @@ export default function Session() {
     }
   }
 
+  const stopScreenShare = async () => {
+    const videoSender = pcRef.current?.getSenders().find(s => s.track && s.track.kind === 'video')
+    const cameraTrack = streamRef.current?.getVideoTracks()[0]
+    if (videoSender && cameraTrack) {
+      try { await videoSender.replaceTrack(cameraTrack) } catch { /* noop */ }
+    }
+    if (localVideoRef.current && streamRef.current) {
+      localVideoRef.current.srcObject = streamRef.current
+    }
+    screenStreamRef.current?.getTracks().forEach(track => track.stop())
+    screenStreamRef.current = null
+    setSharing(false)
+  }
+
+  const toggleScreenShare = async () => {
+    const pc = pcRef.current
+    if (!pc) return
+
+    if (sharing) {
+      await stopScreenShare()
+      return
+    }
+
+    const videoSender = pc.getSenders().find(s => s.track && s.track.kind === 'video')
+    if (!videoSender) return
+
+    let screenStream
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true })
+    } catch {
+      return // user cancelled the picker
+    }
+
+    screenStreamRef.current = screenStream
+    const screenTrack = screenStream.getVideoTracks()[0]
+    try { await videoSender.replaceTrack(screenTrack) } catch { /* noop */ }
+    if (localVideoRef.current) localVideoRef.current.srcObject = screenStream
+    setSharing(true)
+
+    // Revert to the camera when the browser's native "Stop sharing" is used.
+    screenTrack.onended = () => { stopScreenShare() }
+  }
+
   const endSession = async () => {
     setEnding(true)
     try {
@@ -75,7 +267,7 @@ export default function Session() {
     } catch {
       // still redirect
     }
-    streamRef.current?.getTracks().forEach(track => track.stop())
+    teardown()
     navigate(`/quiz/${id}`)
   }
 
@@ -89,6 +281,7 @@ export default function Session() {
   const peerAvatar = peer?.avatar_url || null
   const myName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You'
   const myAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+  const statusText = connected ? 'Connected' : (peerPresent ? 'Connecting…' : 'Waiting for peer…')
 
   if (loading) {
     return (
@@ -126,7 +319,7 @@ export default function Session() {
                 <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
                   <span className={`flex items-center gap-1 ${connected ? 'text-emerald-300' : 'text-amber-300'}`}>
                     {connected ? <Wifi size={11} /> : <WifiOff size={11} />}
-                    {connected ? 'Connected' : 'Connecting…'}
+                    {statusText}
                   </span>
                   <span className="text-white/30">•</span>
                   <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
@@ -136,7 +329,7 @@ export default function Session() {
                   <span className="text-white/30">•</span>
                   <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                     <Users size={11} />
-                    2 participants
+                    {peerPresent ? '2 participants' : '1 participant'}
                   </span>
                 </div>
               </div>
@@ -157,7 +350,7 @@ export default function Session() {
               showVideo
               accent="indigo"
               emptyText="Waiting for peer to join…"
-              connected={connected}
+              connected={peerPresent}
               avatarUrl={peerAvatar}
               avatarName={peerName}
             />
@@ -204,12 +397,15 @@ export default function Session() {
             </button>
 
             <button
-              onClick={() => toast('Screen share coming soon!')}
+              onClick={toggleScreenShare}
               className="workspace-button w-full justify-center py-3 text-sm"
-              style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
+              style={{
+                background: sharing ? 'rgba(16,185,129,0.16)' : 'rgba(255,255,255,0.08)',
+                borderColor: sharing ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.12)',
+              }}
             >
               <Monitor size={18} />
-              Share screen
+              {sharing ? 'Stop sharing' : 'Share screen'}
             </button>
           </aside>
         </div>

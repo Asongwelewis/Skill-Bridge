@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">77.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>27/30</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
-                <span class="quiet">Branches</span>
-                <span class='fraction'>5/6</span>
+                <span class='fraction'>27/35</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">75% </span>
-                <span class="quiet">Functions</span>
-                <span class='fraction'>3/4</span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>6/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90% </span>
+                <span class="strong">50% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>2/4</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">77.14% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>27/30</span>
+                <span class='fraction'>27/35</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -124,7 +124,17 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -177,20 +187,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span></td><td class="text"><pre class="prettyprint lang-js">require('dotenv').config();
+const http    = require('http');
 const express = require('express');
 const helmet  = require('helmet');
 const cors    = require('cors');
 const morgan  = require('morgan');
 const { startKafkaProducer } = require('./kafka/producer');
+const { attachSignaling } = require('./signaling');
 const supabaseClient = require('./supabaseClient');
 &nbsp;
 const sessionRoutes = require('./routes/sessions');
@@ -235,16 +253,22 @@ app.use(<span class="fstat-no" title="function not covered" >(e</span>rr, req, r
 <span class="cstat-no" title="statement not covered" >  res.status(500).json({ error: 'Internal server error', message: err.message });</span>
 });
 &nbsp;
+// ── HTTP server + WebRTC signaling ───────────────────────────
+const server = http.createServer(app);
+attachSignaling(server);
+&nbsp;
 // ── Start ────────────────────────────────────────────────────
-app.listen(PORT, async () =&gt; {
-  console.log(`Session Service running on port ${PORT}`);
-  try {
-    await startKafkaProducer();
-    console.log('Kafka producer connected');
-  } catch (err) {
-<span class="cstat-no" title="statement not covered" >    console.error('Kafka producer failed to start:', err.message);</span>
-  }
-});
+<span class="missing-if-branch" title="if path not taken" >I</span>if (require.main === module) {
+<span class="cstat-no" title="statement not covered" >  server.listen(PORT, <span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    console.log(`Session Service running on port ${PORT}`);</span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      await startKafkaProducer();</span>
+<span class="cstat-no" title="statement not covered" >      console.log('Kafka producer connected');</span>
+    } catch (err) {
+<span class="cstat-no" title="statement not covered" >      console.error('Kafka producer failed to start:', err.message);</span>
+    }
+  });
+}
 &nbsp;
 module.exports = app;</pre></td></tr></table></pre>
 
@@ -253,7 +277,7 @@ module.exports = app;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-04T16:17:20.409Z
+                at 2026-06-04T17:59:01.160Z
             </div>
         <script src="../prettify.js"></script>
         <script>

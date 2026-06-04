@@ -27,14 +27,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, async () => {
-  console.log(`Notification Service running on port ${PORT}`);
-  try {
-    await startKafkaConsumer();
-    console.log('Kafka consumer started');
-  } catch (err) {
-    console.error('Kafka consumer failed:', err.message);
-  }
-});
+if (require.main === module) {
+  app.listen(PORT, async () => {
+    console.log(`Notification Service running on port ${PORT}`);
+    try {
+      await startKafkaConsumer();
+      console.log('Kafka consumer started');
+    } catch (err) {
+      console.error('Kafka consumer failed:', err.message);
+    }
+  });
+}
 
 module.exports = app;

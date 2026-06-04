@@ -40,14 +40,16 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start server + Kafka consumer ────────────────────────────
-app.listen(PORT, async () => {
-  console.log(`Quiz Service running on port ${PORT}`);
-  try {
-    await startKafkaConsumer();
-    console.log('Kafka consumer started — listening for session.completed');
-  } catch (err) {
-    console.error('Kafka consumer failed to start:', err.message);
-  }
-});
+if (require.main === module) {
+  app.listen(PORT, async () => {
+    console.log(`Quiz Service running on port ${PORT}`);
+    try {
+      await startKafkaConsumer();
+      console.log('Kafka consumer started — listening for session.completed');
+    } catch (err) {
+      console.error('Kafka consumer failed to start:', err.message);
+    }
+  });
+}
 
 module.exports = app;
