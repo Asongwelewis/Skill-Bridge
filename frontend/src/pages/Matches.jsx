@@ -77,9 +77,7 @@ export default function Matches() {
       const status = err?.response?.status
       const serverMsg = err?.response?.data?.error
       if (status === 401) {
-        toast.error(serverMsg || 'Your sign-in expired. Please sign in again.')
-        // optional: force client sign-out to reset auth state
-        try { await supabase.auth.signOut() } catch (_) {}
+        toast.error(serverMsg || 'Authentication failed when creating a session. Please sign out and sign in again.')
         return
       }
       toast.error(serverMsg || 'Failed to create session')
