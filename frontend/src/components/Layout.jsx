@@ -9,14 +9,15 @@ export default function Layout() {
   const location = useLocation()
 
   return (
-    <div className="flex h-screen overflow-hidden theme-transition"
+    <div className="workspace-shell flex h-screen overflow-hidden theme-transition"
       style={{ background: 'var(--bg)' }}>
+      <div className="absolute inset-0 workspace-grid pointer-events-none" aria-hidden="true" />
       <Sidebar />
 
       <main
         key={location.pathname}
-        className="flex-1 overflow-y-auto page-enter"
-        style={{ background: 'var(--bg)' }}
+        className="relative z-10 flex-1 overflow-y-auto page-enter"
+        style={{ background: 'transparent' }}
       >
         <Outlet />
       </main>

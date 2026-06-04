@@ -7,19 +7,19 @@ import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 import toast from 'react-hot-toast'
 
 const MOCK_BADGES = [
-  { name: 'First Session', tier: 'bronze',  earnedAt: '2025-01-15' },
-  { name: 'Quick Learner', tier: 'silver',  earnedAt: '2025-02-03' },
-  { name: 'Quiz Master',   tier: 'gold',    earnedAt: '2025-03-10' },
-  { name: 'Peer Helper',   tier: 'emerald', earnedAt: '2025-04-22' },
+  { name: 'First Session', tier: 'bronze', earnedAt: '2025-01-15' },
+  { name: 'Quick Learner', tier: 'silver', earnedAt: '2025-02-03' },
+  { name: 'Quiz Master', tier: 'gold', earnedAt: '2025-03-10' },
+  { name: 'Peer Helper', tier: 'emerald', earnedAt: '2025-04-22' },
 ]
 
 export default function Profile() {
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form,    setForm]    = useState({ bio: '', full_name: '', location: '' })
+  const [form, setForm] = useState({ bio: '', full_name: '', location: '' })
   const [loading, setLoading] = useState(true)
-  const [saving,  setSaving]  = useState(false)
+  const [saving, setSaving] = useState(false)
   const [badgesRef, badgesVisible, stagger] = useStaggerAnimation(4)
 
   useEffect(() => {
@@ -28,7 +28,11 @@ export default function Profile() {
       .then(res => {
         const p = res.data?.user || res.data
         setProfile(p)
-        setForm({ bio: p?.bio || user?.user_metadata?.bio || '', full_name: p?.full_name || user?.user_metadata?.full_name || '', location: p?.location || '' })
+        setForm({
+          bio: p?.bio || user?.user_metadata?.bio || '',
+          full_name: p?.full_name || user?.user_metadata?.full_name || '',
+          location: p?.location || '',
+        })
       })
       .catch(() => {
         const meta = user.user_metadata || {}
@@ -45,177 +49,207 @@ export default function Profile() {
       setProfile(p => ({ ...p, ...form }))
       setEditing(false)
       toast.success('Profile updated!')
-    } catch { toast.error('Failed to save profile') }
-    finally { setSaving(false) }
+    } catch {
+      toast.error('Failed to save profile')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const xp            = profile?.xp || user?.user_metadata?.xp || 0
-  const level         = Math.floor(xp / 100) + 1
-  const xpProgress    = xp % 100
-  const badges        = profile?.badges || MOCK_BADGES
+  const xp = profile?.xp || user?.user_metadata?.xp || 0
+  const level = Math.floor(xp / 100) + 1
+  const xpProgress = xp % 100
+  const badges = profile?.badges || MOCK_BADGES
   const sessionsCount = profile?.sessionsCount || 0
-  const name          = form.full_name || user?.email?.split('@')[0] || 'Learner'
-  const initials      = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const name = form.full_name || user?.email?.split('@')[0] || 'Learner'
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
   const inputStyle = {
-    background: 'var(--input-bg)',
-    border: '1px solid var(--input-border)',
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.12)',
     color: 'var(--input-text)',
   }
 
-  if (loading) return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="space-y-4">
-        <div className="h-52 rounded-3xl skeleton" />
-        <div className="h-28 rounded-2xl skeleton" />
-        <div className="h-56 rounded-2xl skeleton" />
+  if (loading) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <div className="space-y-4">
+          <div className="h-52 rounded-3xl skeleton" />
+          <div className="h-28 rounded-2xl skeleton" />
+          <div className="h-56 rounded-2xl skeleton" />
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+    <div className="p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] mb-6">
+        <section className="glass-panel card-3d p-6 md:p-8 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-16 -right-10 h-52 w-52 rounded-full blur-3xl animate-float"
+              style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.22) 0%, transparent 70%)' }} />
+            <div className="absolute bottom-0 left-8 h-40 w-40 rounded-full blur-3xl animate-float"
+              style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 70%)', animationDelay: '1s' }} />
+          </div>
 
-      <div className="mb-8 animate-slide-down">
-        <h1 className="text-2xl font-bold mb-1">My Profile</h1>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Manage your profile, view badges, and track your progress
-        </p>
-      </div>
-
-      {/* Profile card */}
-      <div className="rounded-3xl overflow-hidden mb-6 animate-scale-in"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
-
-        {/* Cover */}
-        <div className="h-28 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%)' }}>
-          <div className="absolute inset-0 opacity-40" style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0)',
-            backgroundSize: '20px 20px',
-          }} />
-          {/* Floating orbs */}
-          <div className="absolute top-2 right-12 w-20 h-20 rounded-full animate-float"
-            style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.4) 0%, transparent 70%)', animationDelay: '0.5s' }} />
-          <div className="absolute bottom-0 left-16 w-14 h-14 rounded-full"
-            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.3) 0%, transparent 70%)' }} />
-        </div>
-
-        <div className="px-6 pb-6">
-          <div className="flex items-end justify-between -mt-10 mb-5">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center
-                text-white text-2xl font-bold border-4 shadow-xl shadow-indigo-600/30"
-                style={{ borderColor: 'var(--surface)' }}>
-                {initials}
-              </div>
-              <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg flex items-center justify-center
-                transition-all hover:scale-110"
-                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                <Camera size={13} />
-              </button>
+          <div className="relative z-10">
+            <div className="glass-chip inline-flex mb-4">
+              <Camera size={13} />
+              Profile workspace
             </div>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">My profile</h1>
+            <p className="max-w-xl text-sm md:text-base" style={{ color: 'var(--text-muted)' }}>
+              Keep your identity, progress, and achievements in one polished card instead of a stack of plain panels.
+            </p>
+          </div>
 
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10">
+            {[
+              { icon: TrendingUp, label: 'XP', value: xp, color: '#818CF8', bg: 'rgba(79,70,229,0.12)' },
+              { icon: Star, label: 'Level', value: level, color: '#fbbf24', bg: 'rgba(245,158,11,0.12)' },
+              { icon: Award, label: 'Badges', value: badges.length, color: '#c084fc', bg: 'rgba(168,85,247,0.12)' },
+              { icon: Video, label: 'Sessions', value: sessionsCount, color: '#34d399', bg: 'rgba(16,185,129,0.12)' },
+            ].map(({ icon: Icon, label, value, color, bg }, i) => (
+              <div
+                key={label}
+                className="rounded-[1.35rem] border border-white/10 bg-white/8 backdrop-blur-lg p-4 animate-slide-up"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <div className="w-10 h-10 rounded-[1rem_1.25rem_1rem_1.25rem] flex items-center justify-center mb-2" style={{ background: bg }}>
+                  <Icon size={18} style={{ color }} />
+                </div>
+                <p className="text-2xl font-semibold">{value}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-subtle)' }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="glass-panel card-3d p-6 md:p-7">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em]" style={{ color: 'var(--text-subtle)' }}>Identity</p>
+              <h2 className="text-xl font-semibold mt-1">{name}</h2>
+            </div>
             {editing ? (
               <div className="flex gap-2">
-                <button onClick={() => setEditing(false)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm transition-all hover:-translate-y-0.5"
-                  style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                <button
+                  onClick={() => setEditing(false)}
+                  className="workspace-button text-sm"
+                  style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
+                >
                   <X size={13} /> Cancel
                 </button>
-                <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500
-                    text-white text-sm font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-60">
-                  <Save size={13} />{saving ? 'Saving…' : 'Save'}
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="workspace-button text-sm"
+                  style={{ background: 'rgba(79,70,229,0.22)', borderColor: 'rgba(129,140,248,0.25)' }}
+                >
+                  <Save size={13} />
+                  {saving ? 'Saving…' : 'Save'}
                 </button>
               </div>
             ) : (
-              <button onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm transition-all hover:-translate-y-0.5"
-                style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+              <button
+                onClick={() => setEditing(true)}
+                className="workspace-button text-sm"
+                style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
+              >
                 <Edit3 size={13} /> Edit Profile
               </button>
             )}
           </div>
 
-          {editing ? (
-            <div className="space-y-4">
-              {[{ label: 'Display Name', key: 'full_name', placeholder: 'Your name' },
-                { label: 'Location', key: 'location', placeholder: 'e.g. New York, USA' }].map(({ label, key, placeholder }) => (
-                <div key={key}>
-                  <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>{label}</label>
-                  <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                    placeholder={placeholder}
-                    className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
-                    style={inputStyle} />
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 backdrop-blur-lg p-5">
+            <div className="flex items-end justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-[1.3rem_1.8rem_1.3rem_1.8rem] bg-indigo-500 flex items-center justify-center text-white text-2xl font-bold border-4 border-white/15 shadow-2xl shadow-indigo-500/25">
+                    {initials}
+                  </div>
+                  <button
+                    className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
+                    style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.14)', color: 'var(--text-muted)' }}
+                  >
+                    <Camera size={13} />
+                  </button>
                 </div>
-              ))}
-              <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Bio</label>
-                <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-                  rows={3} placeholder="Tell peers about yourself…"
-                  className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all resize-none"
-                  style={inputStyle} />
+                <div>
+                  <p className="text-sm uppercase tracking-[0.18em]" style={{ color: 'var(--text-subtle)' }}>Profile status</p>
+                  <p className="text-lg font-semibold mt-1">Level {level} learner</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
+                </div>
               </div>
             </div>
-          ) : (
-            <div>
-              <h2 className="text-xl font-bold mb-1">{name}</h2>
-              <p className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
-              {form.location && <p className="text-xs mb-3" style={{ color: 'var(--text-subtle)' }}>📍 {form.location}</p>}
-              {form.bio
-                ? <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{form.bio}</p>
-                : <p className="text-sm italic" style={{ color: 'var(--text-subtle)' }}>No bio yet — click Edit Profile to add one</p>}
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { icon: TrendingUp, label: 'Total XP',  value: xp,            color: '#818CF8', bg: 'rgba(79,70,229,0.1)' },
-          { icon: Star,       label: 'Level',      value: level,         color: '#fbbf24', bg: 'rgba(245,158,11,0.1)' },
-          { icon: Award,      label: 'Badges',     value: badges.length, color: '#c084fc', bg: 'rgba(168,85,247,0.1)' },
-          { icon: Video,      label: 'Sessions',   value: sessionsCount, color: '#34d399', bg: 'rgba(16,185,129,0.1)' },
-        ].map(({ icon: Icon, label, value, color, bg }, i) => (
-          <div key={label}
-            className={`p-4 rounded-2xl flex flex-col items-center text-center animate-slide-up hover-lift`}
-            style={{
-              animationDelay: `${i * 80}ms`,
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--card-shadow)',
-            }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2" style={{ background: bg }}>
-              <Icon size={18} style={{ color }} />
+            <div className="mt-5">
+              {editing ? (
+                <div className="space-y-4">
+                  {[
+                    { label: 'Display Name', key: 'full_name', placeholder: 'Your name' },
+                    { label: 'Location', key: 'location', placeholder: 'e.g. New York, USA' },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={key}>
+                      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>{label}</label>
+                      <input
+                        value={form[key]}
+                        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                        placeholder={placeholder}
+                        className="w-full px-4 py-2.5 rounded-[1rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                        style={inputStyle}
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Bio</label>
+                    <textarea
+                      value={form.bio}
+                      onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                      rows={3}
+                      placeholder="Tell peers about yourself…"
+                      className="w-full px-4 py-2.5 rounded-[1rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all resize-none"
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {form.location && (
+                    <p className="text-xs mb-3" style={{ color: 'var(--text-subtle)' }}>📍 {form.location}</p>
+                  )}
+                  {form.bio ? (
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{form.bio}</p>
+                  ) : (
+                    <p className="text-sm italic" style={{ color: 'var(--text-subtle)' }}>
+                      No bio yet — click Edit Profile to add one
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-            <p className="text-2xl font-bold">{value}</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-subtle)' }}>{label}</p>
           </div>
-        ))}
+        </section>
       </div>
 
-      {/* XP Progress */}
-      <div className="p-5 rounded-2xl mb-6 animate-slide-up delay-300"
-        style={{
-          background: 'linear-gradient(135deg, rgba(79,70,229,0.1) 0%, var(--surface) 100%)',
-          border: '1px solid rgba(79,70,229,0.2)',
-        }}>
-        <div className="flex items-center justify-between mb-3">
+      <div className="glass-panel card-3d p-5 mb-6">
+        <div className="flex items-center justify-between gap-3 mb-4">
           <div>
-            <p className="font-semibold">Level {level} — {100 - xpProgress} XP to Level {level + 1}</p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{xp} total XP earned</p>
+            <p className="text-xs uppercase tracking-[0.18em]" style={{ color: 'var(--text-subtle)' }}>Progress</p>
+            <h3 className="font-semibold mt-1">XP journey</h3>
           </div>
-          <Zap size={20} className="text-indigo-400" />
+          <Zap size={20} className="text-indigo-300" />
         </div>
-        <div className="h-3 rounded-full overflow-hidden" style={{ background: 'var(--surface-3)' }}>
-          <div className="h-full rounded-full transition-all duration-1000"
+        <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <div
+            className="h-full rounded-full transition-all duration-1000"
             style={{
               width: `${xpProgress}%`,
               background: 'linear-gradient(90deg, #4F46E5, #10B981)',
               boxShadow: '0 0 10px rgba(79,70,229,0.5)',
-            }} />
+            }}
+          />
         </div>
         <div className="flex justify-between text-xs mt-1" style={{ color: 'var(--text-subtle)' }}>
           <span>Level {level}</span>
@@ -223,13 +257,15 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Badges */}
-      <div className="rounded-2xl p-5 animate-slide-up delay-400"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
+      <div className="glass-panel card-3d p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Badges Earned</h3>
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em]" style={{ color: 'var(--text-subtle)' }}>Rewards</p>
+            <h3 className="font-semibold mt-1">Badges earned</h3>
+          </div>
           <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>{badges.length} total</span>
         </div>
+
         {badges.length === 0 ? (
           <div className="text-center py-8">
             <Award size={28} className="mx-auto mb-3" style={{ color: 'var(--text-subtle)' }} />

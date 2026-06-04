@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Brain, CheckCircle, XCircle, Award, ArrowRight, Trophy } from 'lucide-react'
-import { useTheme } from '../context/ThemeContext'
+import { Brain, CheckCircle, XCircle, Award, ArrowRight, Trophy, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
 import { quizApi } from '../lib/api'
 import toast from 'react-hot-toast'
 
@@ -20,15 +19,14 @@ const DEMO_QUIZ = {
 export default function Quiz() {
   const { sessionId } = useParams()
   const navigate = useNavigate()
-  const { isDark } = useTheme()
 
-  const [quiz,       setQuiz]       = useState(null)
-  const [loading,    setLoading]    = useState(true)
-  const [answers,    setAnswers]    = useState({})
-  const [submitted,  setSubmitted]  = useState(false)
-  const [result,     setResult]     = useState(null)
+  const [quiz, setQuiz] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [answers, setAnswers] = useState({})
+  const [submitted, setSubmitted] = useState(false)
+  const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [current,    setCurrent]    = useState(0)
+  const [current, setCurrent] = useState(0)
 
   useEffect(() => {
     quizApi.getQuiz(sessionId)
@@ -44,8 +42,10 @@ export default function Quiz() {
 
   const handleSubmit = async () => {
     const questions = quiz?.questions || []
-    if (Object.keys(answers).length < questions.length)
+    if (Object.keys(answers).length < questions.length) {
       return toast.error('Please answer all questions first')
+    }
+
     setSubmitting(true)
     try {
       let data
@@ -54,99 +54,117 @@ export default function Quiz() {
         data = res.data
       } catch {
         let correct = 0
-        questions.forEach(q => { if (answers[q.id] === q.correct) correct++ })
+        questions.forEach(q => {
+          if (answers[q.id] === q.correct) correct++
+        })
         const score = Math.round((correct / questions.length) * 100)
         data = { score, correct, total: questions.length, passed: score >= 60, badge: score >= 80 ? 'Quiz Master' : null }
       }
+
       setResult(data)
       setSubmitted(true)
       if (data.passed) toast.success('🎉 Quiz passed! Badge awarded!')
       else toast.error('Quiz failed. Keep practising!')
-    } finally { setSubmitting(false) }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const bg     = isDark ? '#09091a' : '#f3f4ff'
-  const surface = isDark ? 'rgba(15,14,26,0.92)' : '#fff'
-  const borderC = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(79,70,229,0.12)'
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: bg }}>
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading quiz…</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center theme-transition" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+        <div className="glass-panel card-3d px-6 py-5 flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading quiz…</p>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const questions = quiz?.questions || []
-  const answered  = Object.keys(answers).length
+  const answered = Object.keys(answers).length
 
-  /* ── Result screen ── */
   if (submitted && result) {
     const passed = result.passed || result.score >= 60
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 theme-transition animate-fade-in"
-        style={{ background: bg, color: 'var(--text)' }}>
-        <div className="max-w-md w-full text-center">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 animate-pop-in
-            ${passed ? 'bg-emerald-500/15' : 'bg-red-500/15'}`}>
-            {passed
-              ? <Trophy size={40} className="text-emerald-400" />
-              : <XCircle size={40} className="text-red-400" />}
+      <div className="min-h-screen theme-transition animate-fade-in" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+        <div className="relative mx-auto max-w-4xl px-4 md:px-6 py-8 md:py-12">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full blur-3xl animate-float"
+              style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.14) 0%, transparent 70%)' }} />
+            <div className="absolute right-0 top-20 h-64 w-64 rounded-full blur-3xl animate-float"
+              style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.14) 0%, transparent 70%)', animationDelay: '1s' }} />
           </div>
 
-          <h1 className="text-3xl font-bold mb-2 animate-slide-up delay-100">
-            {passed ? 'Excellent Work!' : 'Keep Practising!'}
-          </h1>
-          <p className="mb-8 animate-slide-up delay-150" style={{ color: 'var(--text-muted)' }}>
-            {passed
-              ? 'You passed the quiz and earned a badge!'
-              : `You scored ${result.score}%. You need 60% to pass.`}
-          </p>
-
-          {/* Score ring */}
-          <div className="relative w-36 h-36 mx-auto mb-8 animate-scale-in delay-200">
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.9" fill="none"
-                stroke={isDark ? '#1f2937' : '#e5e7eb'} strokeWidth="3" />
-              <circle cx="18" cy="18" r="15.9" fill="none"
-                stroke={passed ? '#10B981' : '#ef4444'} strokeWidth="3"
-                strokeDasharray={`${result.score || 0} 100`}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-3xl font-bold">{result.score || 0}%</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {result.correct}/{result.total || questions.length}
-              </p>
+          <div className="relative z-10 glass-panel card-3d p-6 md:p-8 text-center">
+            <div className={`w-24 h-24 rounded-[1.8rem] flex items-center justify-center mx-auto mb-6 ${passed ? 'bg-emerald-500/15' : 'bg-red-500/15'}`}>
+              {passed ? <Trophy size={40} className="text-emerald-300" /> : <XCircle size={40} className="text-red-300" />}
             </div>
-          </div>
 
-          {passed && result.badge && (
-            <div className="mb-6 p-4 rounded-2xl flex items-center justify-center gap-3 animate-pop-in delay-300"
-              style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>
-              <Award size={24} className="text-amber-400" />
-              <div className="text-left">
-                <p className="text-amber-400 font-semibold text-sm">Badge Earned!</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{result.badge}</p>
+            <div className="glass-chip inline-flex mb-4">
+              <Sparkles size={12} />
+              Quiz results
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-semibold mb-2">
+              {passed ? 'Excellent work!' : 'Keep practising!'}
+            </h1>
+            <p className="mb-8 max-w-md mx-auto" style={{ color: 'var(--text-muted)' }}>
+              {passed
+                ? 'You passed the quiz and earned a badge.'
+                : `You scored ${result.score}%. You need 60% to pass.`}
+            </p>
+
+            <div className="relative w-36 h-36 mx-auto mb-8">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="none"
+                  stroke={passed ? '#10B981' : '#ef4444'}
+                  strokeWidth="3"
+                  strokeDasharray={`${result.score || 0} 100`}
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="text-3xl font-bold">{result.score || 0}%</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {result.correct}/{result.total || questions.length}
+                </p>
               </div>
             </div>
-          )}
 
-          <div className="flex gap-3 animate-slide-up delay-400">
-            <button onClick={() => navigate('/dashboard')}
-              className="flex-1 py-3 rounded-xl text-sm font-medium transition-all hover:-translate-y-0.5"
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-              Dashboard
-            </button>
-            <button onClick={() => navigate('/profile')}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl
-                bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold
-                transition-all hover:-translate-y-0.5">
-              View Profile <ArrowRight size={15} />
-            </button>
+            {passed && result.badge && (
+              <div className="mb-6 glass-panel p-4 rounded-[1.5rem] flex items-center justify-center gap-3">
+                <Award size={24} className="text-amber-300" />
+                <div className="text-left">
+                  <p className="text-amber-300 font-semibold text-sm">Badge earned!</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{result.badge}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="workspace-button justify-center py-3 text-sm"
+                style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/profile')}
+                className="workspace-button justify-center py-3 text-sm"
+                style={{ background: 'rgba(79,70,229,0.22)', borderColor: 'rgba(129,140,248,0.25)' }}
+              >
+                View Profile
+                <ArrowRight size={15} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -154,127 +172,159 @@ export default function Quiz() {
   }
 
   const q = questions[current]
+  const progress = questions.length ? (answered / questions.length) * 100 : 0
 
-  /* ── Quiz screen ── */
   return (
-    <div className="min-h-screen flex flex-col theme-transition" style={{ background: bg, color: 'var(--text)' }}>
-
-      {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between animate-slide-down"
-        style={{ background: surface, borderBottom: `1px solid ${borderC}` }}>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
-            <Brain size={15} className="text-white" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">{quiz?.title || 'Knowledge Check'}</p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{answered} of {questions.length} answered</p>
-          </div>
+    <div className="min-h-screen theme-transition" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+      <div className="relative mx-auto max-w-7xl px-4 md:px-6 py-4 md:py-6">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 left-1/3 h-72 w-72 rounded-full blur-3xl animate-float"
+            style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.14) 0%, transparent 70%)' }} />
+          <div className="absolute right-0 top-20 h-64 w-64 rounded-full blur-3xl animate-float"
+            style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)', animationDelay: '1s' }} />
         </div>
-        {/* Progress bar */}
-        <div className="w-32 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-3)' }}>
-          <div className="h-full bg-indigo-600 rounded-full transition-all duration-500"
-            style={{ width: `${(answered / questions.length) * 100}%` }} />
-        </div>
-      </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-2xl">
-
-          {/* Question pills */}
-          <div className="flex gap-2 justify-center mb-8 flex-wrap animate-fade-in">
-            {questions.map((_, i) => (
-              <button key={i} onClick={() => setCurrent(i)}
-                className="w-9 h-9 rounded-xl text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
-                style={{
-                  background: i === current
-                    ? '#4F46E5'
-                    : answers[questions[i]?.id] !== undefined
-                      ? 'rgba(16,185,129,0.15)'
-                      : 'var(--surface)',
-                  color: i === current ? '#fff' : answers[questions[i]?.id] !== undefined ? '#34d399' : 'var(--text-muted)',
-                  border: i === current
-                    ? 'none'
-                    : answers[questions[i]?.id] !== undefined
-                      ? '1px solid rgba(16,185,129,0.3)'
-                      : '1px solid var(--border)',
-                  boxShadow: i === current ? '0 4px 12px rgba(79,70,229,0.35)' : 'none',
-                }}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
-
-          {/* Question card */}
-          {q && (
-            <div key={current} className="rounded-3xl p-8 animate-scale-in"
-              style={{ background: surface, border: `1px solid ${borderC}`, boxShadow: 'var(--card-shadow)' }}>
-              <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-5"
-                style={{ background: 'rgba(79,70,229,0.12)', border: '1px solid rgba(79,70,229,0.25)', color: '#818CF8' }}>
-                Question {current + 1} of {questions.length}
-              </span>
-
-              <p className="text-xl font-semibold mb-8 leading-relaxed">{q.question}</p>
-
-              <div className="space-y-3">
-                {q.options?.map((option, idx) => {
-                  const selected = answers[q.id] === idx
-                  return (
-                    <button key={idx} onClick={() => handleAnswer(q.id, idx)}
-                      className="w-full text-left p-4 rounded-2xl flex items-center gap-4 group
-                        transition-all duration-200 hover:-translate-y-0.5"
-                      style={{
-                        background: selected ? 'rgba(79,70,229,0.12)' : 'var(--surface-3)',
-                        border: `1px solid ${selected ? 'rgba(79,70,229,0.45)' : 'var(--border)'}`,
-                        boxShadow: selected ? '0 0 0 3px rgba(79,70,229,0.1)' : 'none',
-                      }}>
-                      <div className="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
-                        style={{
-                          borderColor: selected ? '#4F46E5' : 'var(--border-2)',
-                          background: selected ? '#4F46E5' : 'transparent',
-                        }}>
-                        {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                      </div>
-                      <span className="text-sm font-medium" style={{ color: selected ? 'var(--text)' : 'var(--text-muted)' }}>
-                        {option}
-                      </span>
-                    </button>
-                  )
-                })}
+        <header className="glass-panel card-3d relative overflow-hidden px-5 md:px-6 py-4 md:py-5 mb-5">
+          <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-[1rem_1.25rem_1rem_1.25rem] bg-indigo-500/20 border border-white/10 flex items-center justify-center">
+                <Brain size={18} className="text-indigo-300" />
               </div>
-
-              {/* Navigation */}
-              <div className="flex justify-between items-center mt-8">
-                <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0}
-                  className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all hover:-translate-y-0.5 disabled:opacity-30"
-                  style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                  ← Previous
-                </button>
-
-                {current < questions.length - 1 ? (
-                  <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white
-                      text-sm font-semibold transition-all hover:-translate-y-0.5 shadow-lg shadow-indigo-600/25">
-                    Next →
-                  </button>
-                ) : (
-                  <button onClick={handleSubmit}
-                    disabled={submitting || answered < questions.length}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold
-                      transition-all hover:-translate-y-0.5 disabled:opacity-50"
-                    style={{
-                      background: answered < questions.length ? 'var(--surface-3)' : 'rgba(16,185,129,0.85)',
-                      color: answered < questions.length ? 'var(--text-muted)' : '#fff',
-                      boxShadow: answered >= questions.length ? '0 4px 16px rgba(16,185,129,0.3)' : 'none',
-                    }}>
-                    <CheckCircle size={15} />
-                    {submitting ? 'Submitting…' : 'Submit Quiz'}
-                  </button>
-                )}
+              <div>
+                <div className="glass-chip inline-flex mb-2">
+                  <Sparkles size={12} />
+                  Knowledge check
+                </div>
+                <p className="text-lg md:text-xl font-semibold leading-tight">{quiz?.title || 'Quiz'}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                  {answered} of {questions.length} answered
+                </p>
               </div>
             </div>
-          )}
+
+            <div className="w-full lg:w-64">
+              <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--text-subtle)' }}>
+                <span>Progress</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex justify-center gap-2 mb-6 flex-wrap">
+          {questions.map((_, i) => {
+            const answeredQuestion = answers[questions[i]?.id] !== undefined
+            return (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className="w-10 h-10 rounded-[1rem_1.25rem_1rem_1.25rem] text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                style={{
+                  background: i === current
+                    ? 'rgba(99,102,241,0.26)'
+                    : answeredQuestion
+                      ? 'rgba(16,185,129,0.14)'
+                      : 'rgba(255,255,255,0.08)',
+                  color: i === current
+                    ? '#fff'
+                    : answeredQuestion
+                      ? '#34d399'
+                      : 'var(--text-muted)',
+                  border: i === current
+                    ? '1px solid rgba(129,140,248,0.35)'
+                    : answeredQuestion
+                      ? '1px solid rgba(16,185,129,0.25)'
+                      : '1px solid rgba(255,255,255,0.12)',
+                }}
+              >
+                {i + 1}
+              </button>
+            )
+          })}
         </div>
+
+        {q && (
+          <div className="glass-panel card-3d p-6 md:p-8 max-w-3xl mx-auto">
+            <span className="glass-chip mb-5 inline-flex">
+              Question {current + 1} of {questions.length}
+            </span>
+
+            <p className="text-xl md:text-2xl font-semibold mb-8 leading-relaxed">
+              {q.question}
+            </p>
+
+            <div className="space-y-3">
+              {q.options?.map((option, idx) => {
+                const selected = answers[q.id] === idx
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswer(q.id, idx)}
+                    className="w-full text-left p-4 rounded-[1.25rem] flex items-center gap-4 group transition-all duration-200 hover:-translate-y-0.5"
+                    style={{
+                      background: selected ? 'rgba(79,70,229,0.14)' : 'rgba(255,255,255,0.06)',
+                      border: `1px solid ${selected ? 'rgba(129,140,248,0.35)' : 'rgba(255,255,255,0.12)'}`,
+                      boxShadow: selected ? '0 0 0 3px rgba(79,70,229,0.10)' : 'none',
+                    }}
+                  >
+                    <div
+                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all"
+                      style={{
+                        borderColor: selected ? '#4F46E5' : 'rgba(255,255,255,0.20)',
+                        background: selected ? '#4F46E5' : 'transparent',
+                      }}
+                    >
+                      {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                    </div>
+                    <span className="text-sm font-medium" style={{ color: selected ? 'var(--text)' : 'var(--text-muted)' }}>
+                      {option}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex justify-between items-center mt-8 gap-3">
+              <button
+                onClick={() => setCurrent(c => Math.max(0, c - 1))}
+                disabled={current === 0}
+                className="workspace-button text-sm"
+                style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
+              >
+                <ChevronLeft size={15} />
+                Previous
+              </button>
+
+              {current < questions.length - 1 ? (
+                <button
+                  onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))}
+                  className="workspace-button text-sm"
+                  style={{ background: 'rgba(79,70,229,0.22)', borderColor: 'rgba(129,140,248,0.25)' }}
+                >
+                  Next
+                  <ChevronRight size={15} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting || answered < questions.length}
+                  className="workspace-button text-sm"
+                  style={{
+                    background: answered < questions.length ? 'rgba(255,255,255,0.08)' : 'rgba(16,185,129,0.85)',
+                    borderColor: answered < questions.length ? 'rgba(255,255,255,0.12)' : 'rgba(16,185,129,0.30)',
+                    color: answered < questions.length ? 'var(--text-muted)' : '#fff',
+                  }}
+                >
+                  <CheckCircle size={15} />
+                  {submitting ? 'Submitting…' : 'Submit Quiz'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

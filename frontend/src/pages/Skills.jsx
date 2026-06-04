@@ -33,10 +33,13 @@ export default function Skills() {
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', category: '', mode: 'both', proficiency: 3 })
   const [saving, setSaving] = useState(false)
-  const [gridRef, gridVisible, stagger] = useStaggerAnimation(9)
+  const [gridRef, , stagger] = useStaggerAnimation(9)
 
   const load = async () => {
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
     try {
       const res = await userApi.getMySkills()
       // Backend returns array of user_skills with nested skills object
@@ -138,7 +141,7 @@ export default function Skills() {
             const mc = MODE_COLORS[skill.mode] || MODE_COLORS.both
             const pc = profColor(skill.proficiency)
             return (
-              <div key={skill.id || i} className={`reveal ${gridVisible ? 'visible' : ''} ${stagger(i)}`}>
+              <div key={skill.id || i} className={`reveal visible ${stagger(i)}`}>
                 <div className="p-5 rounded-2xl group relative h-full hover-lift"
                   style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
                   <button onClick={() => handleDelete(skill.id)}
