@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { supabase } from './supabase'
-import toast from 'react-hot-toast'
 
 const BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
@@ -81,15 +80,3 @@ export const notificationApi = {
 }
 
 export default api
-
-// Global 401 handler: show a user-friendly toast when auth fails
-api.interceptors.response.use(
-  response => response,
-  error => {
-    const status = error?.response?.status
-    if (status === 401) {
-      toast.error('Authentication error — please sign out and sign in again.')
-    }
-    return Promise.reject(error)
-  }
-)
