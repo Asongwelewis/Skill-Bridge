@@ -4,7 +4,7 @@ const helmet  = require('helmet');
 const cors    = require('cors');
 const morgan  = require('morgan');
 const { startKafkaProducer } = require('./kafka/producer');
-const { getSupabaseDiagnostics } = require('./supabaseClient');
+const supabaseClient = require('./supabaseClient');
 
 const sessionRoutes = require('./routes/sessions');
 
@@ -19,11 +19,18 @@ app.use(express.json());
 
 // ── Health check ─────────────────────────────────────────────
 app.get('/health', (req, res) => {
+  const diag = typeof supabaseClient.getSupabaseDiagnostics === 'function'
+    ? supabaseClient.getSupabaseDiagnostics()
+    : {
+        supabaseUrl: process.env.SUPABASE_URL || null,
+        hasSupabaseSecret: Boolean(process.env.SUPABASE_SECRET_KEY)
+      };
+
   res.json({
     status: 'ok',
     service: 'session-service',
     timestamp: new Date().toISOString(),
-    supabase: getSupabaseDiagnostics()
+    supabase: diag
   });
 });
 
