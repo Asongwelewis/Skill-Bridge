@@ -130,6 +130,39 @@ function attachSignaling(server) {
         return;
       }
 
+      // Live text chat: relay to the other peer(s) and persist to Supabase.
+      if (msg.type === 'chat') {
+        const text = typeof msg.text === 'string' ? msg.text.trim() : '';
+        if (!text) return;
+        const senderName = typeof msg.senderName === 'string' && msg.senderName
+          ? msg.senderName
+          : 'Peer';
+
+        const payload = { type: 'chat', text, senderName, senderId: userId, ts: Date.now() };
+
+        // Relay to the other peer(s) in the room only (same pattern as signaling).
+        const set = rooms.get(roomId);
+        if (set) {
+          for (const other of set) {
+            if (other !== member) send(other.ws, payload);
+          }
+        }
+
+        // Persist best-effort — a DB failure must never break the live relay.
+        (async () => {
+          try {
+            await supabase.from('session_messages').insert({
+              session_id:  roomId,
+              sender_id:   userId,
+              sender_name: senderName,
+              content:     text,
+            });
+          } catch { /* swallow persistence errors */ }
+        })();
+
+        return;
+      }
+
       // Relay signaling messages to the other peer in the room only.
       if (msg.type === 'offer' || msg.type === 'answer' || msg.type === 'ice-candidate') {
         const set = rooms.get(roomId);

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Monitor, Brain, Users, Clock, Wifi, WifiOff, Sparkles } from 'lucide-react'
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Monitor, Brain, Users, Clock, Wifi, WifiOff, Sparkles, MessageSquare, Send, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { sessionApi } from '../lib/api'
 import { supabase } from '../lib/supabase'
@@ -43,6 +43,8 @@ export default function Session() {
   const pcRef = useRef(null)
   const wsRef = useRef(null)
   const screenStreamRef = useRef(null)
+  const chatOpenRef = useRef(false)
+  const chatScrollRef = useRef(null)
 
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -53,6 +55,12 @@ export default function Session() {
   const [sharing, setSharing] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [ending, setEnding] = useState(false)
+
+  // ── In-call text chat (over the existing signaling socket) ──
+  const [chatOpen, setChatOpen] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [unread, setUnread] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -89,6 +97,42 @@ export default function Session() {
     const timer = setInterval(() => setElapsed(value => value + 1), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Keep a ref of the open state for the (long-lived) ws.onmessage closure,
+  // and clear the unread badge whenever the panel is opened.
+  useEffect(() => {
+    chatOpenRef.current = chatOpen
+    if (chatOpen) setUnread(0)
+  }, [chatOpen])
+
+  // Auto-scroll to the newest message.
+  useEffect(() => {
+    if (chatOpen && chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
+    }
+  }, [messages, chatOpen])
+
+  const sendChat = (e) => {
+    e?.preventDefault()
+    const text = chatInput.trim()
+    if (!text) return
+    const ws = wsRef.current
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      toast.error('Chat is not connected yet.')
+      return
+    }
+    const senderName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'You'
+    ws.send(JSON.stringify({ type: 'chat', text, senderName }))
+    // Optimistically append our own message.
+    setMessages(list => [...list, {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      text,
+      senderName,
+      mine: true,
+      ts: Date.now(),
+    }])
+    setChatInput('')
+  }
 
   // Tears down the call: notify the peer, close the socket + connection,
   // and stop every local track (camera, mic, screen share). Idempotent.
@@ -205,6 +249,17 @@ export default function Session() {
               setConnected(false)
             }
             toast('Your peer left the session.')
+          } else if (msg.type === 'chat') {
+            if (active && typeof msg.text === 'string') {
+              setMessages(list => [...list, {
+                id: `${msg.ts || Date.now()}-${Math.random().toString(36).slice(2)}`,
+                text: msg.text,
+                senderName: msg.senderName || 'Peer',
+                mine: false,
+                ts: msg.ts || Date.now(),
+              }])
+              if (!chatOpenRef.current) setUnread(u => u + 1)
+            }
           } else if (msg.type === 'room-full') {
             toast.error('This session room is already full.')
           }
@@ -427,9 +482,97 @@ export default function Session() {
               <Monitor size={18} />
               {sharing ? 'Stop sharing' : 'Share screen'}
             </button>
+
+            <button
+              onClick={() => setChatOpen(open => !open)}
+              className="workspace-button w-full justify-center py-3 text-sm relative"
+              style={{
+                background: chatOpen ? 'rgba(79,70,229,0.16)' : 'rgba(255,255,255,0.08)',
+                borderColor: chatOpen ? 'rgba(129,140,248,0.25)' : 'rgba(255,255,255,0.12)',
+              }}
+            >
+              <MessageSquare size={18} />
+              {chatOpen ? 'Hide chat' : 'Chat'}
+              {!chatOpen && unread > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold
+                  flex items-center justify-center bg-indigo-500 text-white shadow-lg">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
+            </button>
           </aside>
         </div>
       </div>
+
+      {/* Collapsible in-call chat — fixed so it never disturbs the video layout */}
+      {chatOpen && (
+        <div className="fixed z-40 bottom-3 right-3 left-3 sm:left-auto sm:w-[340px] animate-scale-in">
+          <div className="glass-panel card-3d flex flex-col overflow-hidden rounded-[1.5rem]"
+            style={{ height: 'min(70vh, 440px)' }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b shrink-0"
+              style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-2">
+                <MessageSquare size={15} className="text-indigo-300" />
+                <span className="text-sm font-semibold">Session chat</span>
+              </div>
+              <button
+                onClick={() => setChatOpen(false)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
+                style={{ background: 'var(--surface-3)', color: 'var(--text-muted)' }}
+                aria-label="Close chat"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5">
+              {messages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center gap-2 px-4">
+                  <MessageSquare size={22} style={{ color: 'var(--text-subtle)' }} />
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No messages yet — say hello to your peer.</p>
+                </div>
+              ) : (
+                messages.map(m => (
+                  <div key={m.id} className={`flex flex-col ${m.mine ? 'items-end' : 'items-start'}`}>
+                    <span className="text-[10px] mb-0.5 px-1" style={{ color: 'var(--text-subtle)' }}>
+                      {m.mine ? 'You' : m.senderName}
+                    </span>
+                    <div className="max-w-[85%] px-3 py-2 rounded-2xl text-sm break-words"
+                      style={{
+                        background: m.mine ? 'rgba(79,70,229,0.22)' : 'var(--surface-3)',
+                        border: `1px solid ${m.mine ? 'rgba(129,140,248,0.30)' : 'var(--border)'}`,
+                        color: 'var(--text)',
+                      }}>
+                      {m.text}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <form onSubmit={sendChat} className="flex items-center gap-2 p-3 border-t shrink-0"
+              style={{ borderColor: 'var(--border)' }}>
+              <input
+                type="text"
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                placeholder="Type a message…"
+                className="flex-1 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)', color: 'var(--input-text)' }}
+              />
+              <button
+                type="submit"
+                disabled={!chatInput.trim()}
+                className="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                style={{ background: 'rgba(79,70,229,0.85)', color: '#fff' }}
+                aria-label="Send message"
+              >
+                <Send size={16} />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
