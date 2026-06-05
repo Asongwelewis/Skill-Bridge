@@ -1,4 +1,5 @@
 const supabase = require('../supabaseClient');
+const { deleteCache } = require('../cache/redisClient');
 
 // GET /api/users/skills — list all skills in the catalog
 async function listSkills(req, res) {
@@ -103,6 +104,17 @@ async function addMySkill(req, res) {
     .single();
 
   if (error) return res.status(400).json({ error: error.message });
+
+  // Safety net: adding a skill means the user has effectively completed
+  // onboarding. Best-effort — never block the skill response on this.
+  try {
+    await supabase
+      .from('profiles')
+      .update({ onboarded: true })
+      .eq('id', req.user.id);
+    await deleteCache(`profile:${req.user.id}`);
+  } catch (_) { /* non-fatal */ }
+
   res.status(201).json(data);
 }
 

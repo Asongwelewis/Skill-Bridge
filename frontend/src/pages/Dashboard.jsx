@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Zap, Users, Video, Award, ArrowRight, Clock, TrendingUp, Bell } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { matchingApi, sessionApi, notificationApi } from '../lib/api'
 import StatCard from '../components/StatCard'
 import Avatar from '../components/Avatar'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
+import dashboardBg from '../assets/Dashboard.jpg'
+import welcomeImg from '../assets/Welcome-rafiki.png'
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const { isDark } = useTheme()
   const [matches, setMatches] = useState([])
   const [sessions, setSessions] = useState([])
   const [notifications, setNotifications] = useState([])
@@ -63,7 +67,16 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+    <div className="relative min-h-full">
+      {/* Low-opacity page backdrop — sits behind content, never intercepts clicks */}
+      <img
+        src={dashboardBg}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+        style={{ opacity: isDark ? 0.06 : 0.08 }}
+      />
+      <div className="relative z-10 p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.85fr] mb-6">
         <section className="glass-panel card-3d relative overflow-hidden p-6 md:p-8">
           <div className="absolute inset-0 pointer-events-none">
@@ -72,6 +85,15 @@ export default function Dashboard() {
             <div className="absolute -bottom-24 -left-8 h-56 w-56 rounded-full blur-3xl animate-float"
               style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)', animationDelay: '1.1s' }} />
           </div>
+
+          {/* Welcome illustration — decorative, tucked into the corner on large screens */}
+          <img
+            src={welcomeImg}
+            alt=""
+            aria-hidden="true"
+            className="hidden xl:block absolute -right-4 -bottom-6 w-48 2xl:w-56 object-contain pointer-events-none select-none animate-float"
+            style={{ opacity: 0.9 }}
+          />
 
           <div className="relative z-10 flex flex-col gap-6">
             <div className="flex items-start justify-between gap-4">
@@ -306,6 +328,7 @@ export default function Dashboard() {
                 </div>
           }
         </div>
+      </div>
       </div>
     </div>
   )

@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Users, CheckCircle, XCircle, Clock, Video, Star, Zap, ArrowRight } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { matchingApi, sessionApi } from '../lib/api'
 import Avatar from '../components/Avatar'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import matchesBg from '../assets/open window.jpg'
 
 const STATUS_CFG = {
   pending: { label: 'Pending', textColor: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', Icon: Clock },
@@ -16,6 +18,7 @@ const STATUS_CFG = {
 
 export default function Matches() {
   const { user } = useAuth()
+  const { isDark } = useTheme()
   const navigate = useNavigate()
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
@@ -89,7 +92,16 @@ export default function Matches() {
   const acceptedCount = matches.filter(m => m.status === 'accepted').length
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+    <div className="relative min-h-full">
+      {/* Low-opacity page backdrop — behind content, non-interactive */}
+      <img
+        src={matchesBg}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+        style={{ opacity: isDark ? 0.06 : 0.08 }}
+      />
+      <div className="relative z-10 p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] mb-6">
         <section className="glass-panel card-3d p-6 md:p-8 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
@@ -269,6 +281,7 @@ export default function Matches() {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }

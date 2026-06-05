@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useScrollAnimation, useStaggerAnimation } from '../hooks/useScrollAnimation'
+import howItWorksImg from '../assets/How it works.png'
+import dataExtractionImg from '../assets/Data extraction-amico.png'
 
 const features = [
   { icon: Zap, title: 'Smart Matching', desc: 'AI pairs you with the right learning partner based on your goals.' },
@@ -529,6 +531,11 @@ export default function Landing() {
               The landing page now uses a dashboard composition similar to the references: strong side panels,
               modular widgets, stacked surfaces, and a central workspace that feels interactive before the first click.
             </p>
+            <img
+              src={howItWorksImg}
+              alt="How SkillBridge works, step by step"
+              className="w-full max-w-md rounded-[1.5rem] object-contain select-none animate-float"
+            />
           </Reveal>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -581,6 +588,11 @@ export default function Landing() {
       <section className="py-20 px-4 md:px-6">
         <Reveal type="scale" className="max-w-4xl mx-auto">
           <div className="p-8 md:p-10 rounded-[2rem] glass text-center">
+            <img
+              src={dataExtractionImg}
+              alt="Turn your sessions into measurable progress"
+              className="w-full max-w-sm mx-auto mb-6 object-contain select-none animate-float"
+            />
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to build your learning workspace?</h2>
             <p className="mb-8 max-w-2xl mx-auto" style={{ color: 'var(--text-muted)' }}>
               Start with skills, let the matching system do the heavy lifting, and move into sessions with a more tactile interface.

@@ -54,10 +54,10 @@ async function getMyProfile(req, res) {
 
 // PUT /api/users/profiles/me
 async function updateProfile(req, res) {
-  const { username, full_name, bio, avatar_url, timezone } = req.body;
+  const { username, full_name, bio, avatar_url, timezone, onboarded } = req.body;
   const { data: existingProfile, error: existingError } = await supabase
     .from('profiles')
-    .select('username, full_name, bio, avatar_url, timezone')
+    .select('username, full_name, bio, avatar_url, timezone, onboarded')
     .eq('id', req.user.id)
     .single();
 
@@ -74,6 +74,7 @@ async function updateProfile(req, res) {
     bio: bio ?? existingProfile?.bio ?? null,
     avatar_url: avatar_url ?? existingProfile?.avatar_url ?? googleAvatar,
     timezone: timezone ?? existingProfile?.timezone ?? 'UTC',
+    onboarded: onboarded ?? existingProfile?.onboarded ?? false,
   };
 
   const { data, error } = await supabase
