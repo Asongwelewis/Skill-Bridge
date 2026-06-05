@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Plus, Trash2, Zap, BookOpen, Repeat, Star, X } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Plus, Trash2, Zap, BookOpen, Repeat, Star, X, Search, Sparkles, Library } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { userApi, matchingApi } from '../lib/api'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
@@ -31,9 +31,71 @@ export default function Skills() {
   const [skills, setSkills] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ name: '', category: '', mode: 'both', proficiency: 3 })
+  const [form, setForm] = useState({ name: '', category: '', mode: 'both', proficiency: 3, skill_id: null })
   const [saving, setSaving] = useState(false)
   const [gridRef, , stagger] = useStaggerAnimation(9)
+
+  // Skills catalog (for search/select + browse section)
+  const [catalog, setCatalog] = useState([])
+  const [catalogLoading, setCatalogLoading] = useState(false)
+  const [query, setQuery] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+
+  const loadCatalog = async () => {
+    if (catalog.length) return // already fetched
+    setCatalogLoading(true)
+    try {
+      const res = await userApi.listSkills()
+      const raw = res.data?.skills || res.data || []
+      // Catalog rows: { id, name, category }
+      setCatalog(raw.filter(s => s?.name).map(s => ({ id: s.id, name: s.name, category: s.category || 'Other' })))
+    } catch {
+      setCatalog([])
+    } finally {
+      setCatalogLoading(false)
+    }
+  }
+
+  // Fetch the catalog when the add-skill modal opens.
+  useEffect(() => {
+    if (showModal) loadCatalog()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showModal])
+
+  // Catalog grouped by category (used by the browse section).
+  const catalogByCategory = useMemo(() => {
+    return catalog.reduce((acc, s) => {
+      (acc[s.category] ||= []).push(s)
+      return acc
+    }, {})
+  }, [catalog])
+
+  // Live-filtered catalog for the searchable select.
+  const trimmedQuery = query.trim().toLowerCase()
+  const filteredCatalog = useMemo(() => {
+    const list = !trimmedQuery
+      ? catalog
+      : catalog.filter(s =>
+          s.name.toLowerCase().includes(trimmedQuery) ||
+          s.category.toLowerCase().includes(trimmedQuery))
+    return list.reduce((acc, s) => {
+      (acc[s.category] ||= []).push(s)
+      return acc
+    }, {})
+  }, [catalog, trimmedQuery])
+
+  const hasExactMatch = trimmedQuery && catalog.some(s => s.name.toLowerCase() === trimmedQuery)
+
+  const selectCatalogSkill = (s) => {
+    setForm(f => ({ ...f, name: s.name, category: s.category === 'Other' ? f.category : s.category, skill_id: s.id }))
+    setQuery(s.name)
+    setShowDropdown(false)
+  }
+
+  const useFreeCreate = () => {
+    setForm(f => ({ ...f, name: query.trim(), skill_id: null }))
+    setShowDropdown(false)
+  }
 
   const load = async () => {
     if (!user) {
@@ -58,12 +120,18 @@ export default function Skills() {
 
   useEffect(() => { load() }, [user])
 
+  // Fetch the catalog once on mount so the browse section can render.
+  useEffect(() => { loadCatalog() }, [])
+
   const handleAdd = async (e) => {
     e.preventDefault()
     if (!form.name.trim()) return toast.error('Skill name required')
     setSaving(true)
     try {
+      // Prefer a catalog id when the user picked an existing skill; otherwise
+      // fall back to create-by-name (backend accepts skill_name).
       await userApi.addMySkill({
+        skill_id:          form.skill_id || null,
         skill_name:        form.name,
         category:          form.category,
         role:              form.mode,
@@ -77,12 +145,25 @@ export default function Skills() {
           // Matching is best-effort; the skill is still saved.
         }
       }
-      setShowModal(false)
-      setForm({ name: '', category: '', mode: 'both', proficiency: 3 })
+      closeModal()
       load()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to add skill')
     } finally { setSaving(false) }
+  }
+
+  const openModal = () => {
+    setForm({ name: '', category: '', mode: 'both', proficiency: 3, skill_id: null })
+    setQuery('')
+    setShowDropdown(false)
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setForm({ name: '', category: '', mode: 'both', proficiency: 3, skill_id: null })
+    setQuery('')
+    setShowDropdown(false)
   }
 
   const handleDelete = async (skillId) => {
@@ -106,7 +187,7 @@ export default function Skills() {
             Add skills you can teach or want to learn to get matched with peers
           </p>
         </div>
-        <button onClick={() => setShowModal(true)}
+        <button onClick={openModal}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold
             px-5 py-2.5 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-indigo-600/25
             hover:shadow-indigo-600/40 hover:-translate-y-0.5">
@@ -128,7 +209,7 @@ export default function Skills() {
           <p className="text-sm mb-6 max-w-sm mx-auto" style={{ color: 'var(--text-muted)' }}>
             Add your first skill to start getting matched with the perfect learning partners
           </p>
-          <button onClick={() => setShowModal(true)}
+          <button onClick={openModal}
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl
               text-sm transition-all hover:-translate-y-0.5 shadow-lg shadow-indigo-600/25">
             Add Your First Skill
@@ -182,6 +263,34 @@ export default function Skills() {
         </div>
       )}
 
+      {/* Browse available skills — read-only catalog grouped by category */}
+      {Object.keys(catalogByCategory).length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Library size={16} className="text-indigo-400" />
+            <h2 className="font-semibold">Browse available skills</h2>
+            <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>{catalog.length} in catalog</span>
+          </div>
+          <div className="rounded-2xl p-5 space-y-4"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
+            {Object.keys(catalogByCategory).sort().map(cat => (
+              <div key={cat}>
+                <p className="text-[10px] uppercase tracking-[0.16em] font-semibold mb-2" style={{ color: 'var(--text-subtle)' }}>{cat}</p>
+                <div className="flex flex-wrap gap-2">
+                  {catalogByCategory[cat].map(s => (
+                    <span key={s.id}
+                      className="text-xs font-medium px-3 py-1.5 rounded-full"
+                      style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
@@ -190,19 +299,83 @@ export default function Skills() {
             style={{ background: 'var(--modal-blur)', border: '1px solid var(--border-2)', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-bold text-lg">Add New Skill</h2>
-              <button onClick={() => setShowModal(false)}
+              <button onClick={closeModal}
                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
                 style={{ background: 'var(--surface-3)', color: 'var(--text-muted)' }}>
                 <X size={16} />
               </button>
             </div>
             <form onSubmit={handleAdd} className="space-y-5">
+              {/* Searchable catalog select with free-create fallback */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Skill Name *</label>
-                <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  required placeholder="e.g. Python, Guitar, UI Design"
-                  className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
-                  style={inputStyle} />
+                <div className="relative">
+                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-subtle)' }} />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={e => {
+                      setQuery(e.target.value)
+                      setForm(f => ({ ...f, name: e.target.value, skill_id: null }))
+                      setShowDropdown(true)
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowDropdown(false), 120)}
+                    required
+                    placeholder="Search skills or type a new one…"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                    style={inputStyle}
+                  />
+                  {form.skill_id && (
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(16,185,129,0.14)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)' }}>
+                      In catalog
+                    </span>
+                  )}
+
+                  {showDropdown && (
+                    <div className="absolute z-20 left-0 right-0 mt-2 max-h-60 overflow-y-auto rounded-2xl p-2"
+                      style={{ background: 'var(--modal-blur)', border: '1px solid var(--border-2)', boxShadow: '0 16px 40px rgba(0,0,0,0.35)' }}>
+                      {catalogLoading ? (
+                        <p className="px-3 py-3 text-xs" style={{ color: 'var(--text-subtle)' }}>Loading catalog…</p>
+                      ) : (
+                        <>
+                          {Object.keys(filteredCatalog).sort().map(cat => (
+                            <div key={cat} className="mb-1.5 last:mb-0">
+                              <p className="px-2.5 pt-1.5 pb-1 text-[10px] uppercase tracking-[0.14em] font-semibold" style={{ color: 'var(--text-subtle)' }}>{cat}</p>
+                              {filteredCatalog[cat].map(s => (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onMouseDown={e => { e.preventDefault(); selectCatalogSkill(s) }}
+                                  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-all hover:bg-indigo-500/10"
+                                  style={{ color: 'var(--text)' }}>
+                                  <Sparkles size={12} className="shrink-0" style={{ color: '#818cf8' }} />
+                                  <span className="truncate">{s.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          ))}
+
+                          {trimmedQuery && !hasExactMatch && (
+                            <button
+                              type="button"
+                              onMouseDown={e => { e.preventDefault(); useFreeCreate() }}
+                              className="w-full text-left px-3 py-2 mt-1 rounded-lg text-sm flex items-center gap-2 transition-all hover:bg-indigo-500/10 border-t"
+                              style={{ color: 'var(--text)', borderColor: 'var(--border)' }}>
+                              <Plus size={13} className="shrink-0" style={{ color: '#34d399' }} />
+                              Create new skill: <span className="font-semibold truncate">“{query.trim()}”</span>
+                            </button>
+                          )}
+
+                          {!catalogLoading && Object.keys(filteredCatalog).length === 0 && !trimmedQuery && (
+                            <p className="px-3 py-3 text-xs" style={{ color: 'var(--text-subtle)' }}>No catalog skills yet — type to create one.</p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Category</label>
@@ -254,7 +427,7 @@ export default function Skills() {
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)}
+                <button type="button" onClick={closeModal}
                   className="flex-1 py-3 rounded-xl text-sm font-medium transition-all hover:-translate-y-0.5"
                   style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                   Cancel
