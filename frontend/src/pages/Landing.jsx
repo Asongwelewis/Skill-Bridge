@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Tilt from 'react-parallax-tilt'
 import {
   Brain, Zap, Video, Award, ArrowRight, Star, Sun, Moon,
   Search, Settings, Bell, Play, Grid3X3, Clock, BarChart3, CircleDot, ChevronRight
@@ -51,7 +52,10 @@ function Reveal({ children, className = '', delay = 0, type = 'up' }) {
 function StatPill({ value, label }) {
   return (
     <div className="p-4 rounded-2xl glass">
-      <p className="text-2xl font-black">{value}</p>
+      <p
+        className="text-2xl font-black"
+        style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}
+      >{value}</p>
       <p className="text-xs uppercase tracking-[0.18em]" style={{ color: 'var(--text-subtle)' }}>{label}</p>
     </div>
   )
@@ -117,13 +121,6 @@ export default function Landing() {
     }
   }, [])
 
-  const boardTransform = useMemo(() => {
-    const rotateX = Math.min(scrollY * 0.01, 9)
-    const rotateY = Math.max(Math.min(scrollY * -0.006, 7), -7)
-    const translateY = Math.min(scrollY * 0.04, 20)
-    return `perspective(1600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(${translateY}px)`
-  }, [scrollY])
-
   return (
     <div className="min-h-screen theme-transition" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       <div ref={cursorGlowRef} className="landing-cursor-glow" aria-hidden="true" />
@@ -132,7 +129,7 @@ export default function Landing() {
         className="fixed top-0 inset-x-0 z-50 theme-transition animate-slide-down"
         style={{
           background: isDark
-            ? `rgba(9,9,26,${Math.min(scrollY / 120, 0.92)})`
+            ? `rgba(10,11,20,${Math.min(scrollY / 120, 0.92)})`
             : `rgba(243,244,255,${Math.min(scrollY / 120, 0.92)})`,
           backdropFilter: scrollY > 10 ? 'blur(18px)' : 'none',
           borderBottom: scrollY > 10 ? '1px solid var(--border)' : '1px solid transparent',
@@ -180,30 +177,18 @@ export default function Landing() {
       </nav>
 
       <section className="relative pt-28 md:pt-32 pb-16 md:pb-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
+        {/* Ambient beam background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          <div className="landing-beam landing-beam-1" />
+          <div className="landing-beam landing-beam-2" />
+          <div className="landing-beam landing-beam-3" />
+          <div className="landing-beam landing-beam-4" />
           <div
-            className="absolute -top-28 -right-16 h-96 w-96 rounded-full animate-spin-slow"
+            className="absolute inset-0"
             style={{
-              background: isDark
-                ? 'radial-gradient(circle, rgba(79,70,229,0.2) 0%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)',
-              transform: `translate(${scrollY * 0.02}px, ${-scrollY * 0.01}px)`,
-            }}
-          />
-          <div
-            className="absolute bottom-0 -left-24 h-80 w-80 rounded-full"
-            style={{
-              background: isDark
-                ? 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(16,185,129,0.07) 0%, transparent 70%)',
-              transform: `translate(${-scrollY * 0.015}px, ${scrollY * 0.02}px)`,
-            }}
-          />
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, ${isDark ? 'rgba(148,163,184,0.16)' : 'rgba(79,70,229,0.12)'} 1px, transparent 0)`,
+              backgroundImage: `radial-gradient(circle at 1px 1px, ${isDark ? 'rgba(148,163,184,0.14)' : 'rgba(79,70,229,0.10)'} 1px, transparent 0)`,
               backgroundSize: '36px 36px',
+              opacity: 0.25,
             }}
           />
         </div>
@@ -217,7 +202,16 @@ export default function Landing() {
               </div>
 
               <div className="space-y-4">
-                <h1 className="text-5xl md:text-6xl xl:text-7xl font-black leading-[0.95] tracking-tight">
+                <h1
+                  className="font-black"
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                    fontWeight: 700,
+                    letterSpacing: '-0.03em',
+                    lineHeight: 1.02,
+                  }}
+                >
                   Build your
                   <span className="block gradient-text">learning command center.</span>
                 </h1>
@@ -245,20 +239,31 @@ export default function Landing() {
               </div>
             </Reveal>
 
-              <div className="relative perspective-1200">
+              <Tilt
+                tiltMaxAngleX={8}
+                tiltMaxAngleY={8}
+                perspective={1600}
+                scale={1.02}
+                transitionSpeed={400}
+                glareEnable={isDark}
+                glareMaxOpacity={0.06}
+                glareColor="#818cf8"
+                glarePosition="all"
+                glareBorderRadius="2rem"
+                className="relative"
+              >
               <div
                 className="absolute inset-0 rounded-[2rem] blur-3xl opacity-50"
                 style={{
                   background: isDark
                     ? 'radial-gradient(circle, rgba(79,70,229,0.22), transparent 65%)'
                     : 'radial-gradient(circle, rgba(79,70,229,0.14), transparent 65%)',
-                  transform: `translateY(${scrollY * 0.02}px)`,
                 }}
               />
 
               <div
-                className="relative rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-5 glass rotate-3d card-3d"
-                style={{ transform: boardTransform, boxShadow: '0 24px 80px rgba(0,0,0,0.18)' }}
+                className="relative rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-5 glass rotate-3d"
+                style={{ boxShadow: '0 24px 80px rgba(0,0,0,0.22)' }}
               >
                 <div className="rounded-[1.7rem] overflow-hidden" style={{ background: 'var(--surface)' }}>
                   <div className="flex items-center justify-between px-4 md:px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -481,7 +486,7 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-            </div>
+              </Tilt>
           </div>
         </div>
       </section>
@@ -489,7 +494,15 @@ export default function Landing() {
       <section className="py-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">A cleaner structure, with real depth</h2>
+            <h2
+              className="font-bold mb-4"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+              }}
+            >A cleaner structure, with real depth</h2>
             <p className="max-w-2xl mx-auto" style={{ color: 'var(--text-muted)' }}>
               The landing page now leans into layered boards, glass panels, and scroll-revealed blocks instead of a flat brochure layout.
             </p>
@@ -524,7 +537,15 @@ export default function Landing() {
               <Video size={12} />
               Session-first workflow
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold">Looks like a workspace, not a brochure.</h2>
+            <h2
+              className="font-bold"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+              }}
+            >Looks like a workspace, not a brochure.</h2>
             <p className="text-lg leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               The landing page now uses a dashboard composition similar to the references: strong side panels,
               modular widgets, stacked surfaces, and a central workspace that feels interactive before the first click.
@@ -550,7 +571,15 @@ export default function Landing() {
       <section className="py-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <Reveal className="text-center mb-12">
-            <h2 className="text-3xl font-bold">What learners say</h2>
+            <h2
+              className="font-bold"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+              }}
+            >What learners say</h2>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-4">
             {testimonials.map(({ name, role, text, avatar }, index) => (
@@ -581,7 +610,15 @@ export default function Landing() {
       <section className="py-20 px-4 md:px-6">
         <Reveal type="scale" className="max-w-4xl mx-auto">
           <div className="p-8 md:p-10 rounded-[2rem] glass text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to build your learning workspace?</h2>
+            <h2
+              className="font-bold mb-4"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+              }}
+            >Ready to build your learning workspace?</h2>
             <p className="mb-8 max-w-2xl mx-auto" style={{ color: 'var(--text-muted)' }}>
               Start with skills, let the matching system do the heavy lifting, and move into sessions with a more tactile interface.
             </p>

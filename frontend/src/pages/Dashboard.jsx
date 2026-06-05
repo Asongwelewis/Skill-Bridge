@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { matchingApi, sessionApi, notificationApi } from '../lib/api'
 import StatCard from '../components/StatCard'
 import Avatar from '../components/Avatar'
+import ReactiveGlass from '../components/ReactiveGlass'
 import { useStaggerAnimation } from '../hooks/useScrollAnimation'
 
 export default function Dashboard() {
@@ -65,7 +66,7 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.85fr] mb-6">
-        <section className="glass-panel card-3d relative overflow-hidden p-6 md:p-8">
+        <ReactiveGlass as="section" className="card-3d p-6 md:p-8">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -top-24 -right-12 h-64 w-64 rounded-full blur-3xl animate-float"
               style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.25) 0%, transparent 70%)' }} />
@@ -88,7 +89,16 @@ export default function Dashboard() {
                     <TrendingUp size={13} />
                     Workspace overview
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">
+                  <h1
+                    className="mb-2"
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)',
+                      fontWeight: 700,
+                      letterSpacing: '-0.03em',
+                      lineHeight: 1.08,
+                    }}
+                  >
                     Good morning, <span className="text-indigo-400">{userName}</span>
                   </h1>
                   <p className="max-w-xl text-sm md:text-base" style={{ color: 'var(--text-muted)' }}>
@@ -114,7 +124,10 @@ export default function Dashboard() {
               ].map(item => (
                 <div key={item.label} className="glass-chip flex-col items-start gap-1 py-4 px-4">
                   <span className="text-[11px] uppercase tracking-[0.2em]" style={{ color: 'var(--text-subtle)' }}>{item.label}</span>
-                  <span className="text-2xl font-semibold">{item.value}</span>
+                  <span
+                    className="text-2xl font-semibold"
+                    style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}
+                  >{item.value}</span>
                 </div>
               ))}
             </div>
@@ -132,9 +145,9 @@ export default function Dashboard() {
               </Link>
             </div>
           </div>
-        </section>
+        </ReactiveGlass>
 
-        <section className="glass-panel card-3d relative overflow-hidden p-6 md:p-7">
+        <ReactiveGlass as="section" className="card-3d p-6 md:p-7">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute inset-x-8 top-8 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-50" />
             <div className="absolute right-8 top-12 h-52 w-52 rounded-full blur-3xl animate-slow-float"
@@ -180,7 +193,7 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-        </section>
+        </ReactiveGlass>
       </div>
 
       <div ref={statsRef} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

@@ -1,6 +1,8 @@
 import React from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import Sidebar from './Sidebar'
+import PageTransition from './PageTransition'
 import { Toaster } from 'react-hot-toast'
 import { useTheme } from '../context/ThemeContext'
 
@@ -15,11 +17,14 @@ export default function Layout() {
       <Sidebar />
 
       <main
-        key={location.pathname}
-        className="relative z-10 flex-1 overflow-y-auto page-enter"
+        className="relative z-10 flex-1 overflow-y-auto"
         style={{ background: 'transparent' }}
       >
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <PageTransition key={location.pathname} variant="inner">
+            <Outlet />
+          </PageTransition>
+        </AnimatePresence>
       </main>
 
       <Toaster

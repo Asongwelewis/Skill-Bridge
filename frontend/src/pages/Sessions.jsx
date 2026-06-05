@@ -207,9 +207,9 @@ export default function Sessions() {
                       {isLive && (
                         <span
                           className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-                          style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}
+                          style={{ background: 'rgba(251,113,133,0.12)', border: '1px solid rgba(251,113,133,0.32)', color: 'var(--accent-rose)' }}
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--accent-rose)' }} />
                           LIVE
                         </span>
                       )}
