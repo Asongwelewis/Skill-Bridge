@@ -51,8 +51,22 @@ export default function Profile() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await userApi.updateProfile(user.id, form)
-      setProfile(p => ({ ...p, ...form }))
+      // Send the avatar_url (and the rest) explicitly, then trust the row the
+      // backend writes back so the saved value (incl. avatar_url) is authoritative.
+      const res = await userApi.updateProfile(user.id, {
+        full_name: form.full_name,
+        bio: form.bio,
+        location: form.location,
+        avatar_url: form.avatar_url,
+      })
+      const saved = res?.data?.user || res?.data || {}
+      setProfile(p => ({ ...p, ...saved }))
+      setForm(f => ({
+        ...f,
+        bio: saved.bio ?? f.bio,
+        full_name: saved.full_name ?? f.full_name,
+        avatar_url: saved.avatar_url ?? f.avatar_url,
+      }))
       setEditing(false)
       toast.success('Profile updated!')
     } catch {

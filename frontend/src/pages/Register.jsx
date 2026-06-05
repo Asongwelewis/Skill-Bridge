@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Brain, Mail, Lock, User, Eye, EyeOff, Sun, Moon, Sparkles, ArrowRight } from 'lucide-react'
+import { Mail, Lock, User, Eye, EyeOff, Sun, Moon, Sparkles, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../context/ThemeContext'
 import toast from 'react-hot-toast'
+import iconDark from '../assets/Icon(dark).jpg'
+import iconWhite from '../assets/Icon(white).jpg'
 
 const GoogleIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
@@ -55,7 +57,7 @@ export default function Register() {
   const inputClass = 'w-full pl-10 pr-4 py-3 rounded-[1.1rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all duration-200'
 
   return (
-    <div className="h-screen theme-transition overflow-hidden" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+    <div className="h-screen relative theme-transition overflow-hidden" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-8rem] left-[-4rem] h-[22rem] w-[22rem] rounded-full blur-3xl animate-float"
           style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)' }} />
@@ -77,14 +79,13 @@ export default function Register() {
 
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div>
-                <div className="glass-chip inline-flex mb-6">
+                <div className="glass-chip inline-flex mb-6"
+                  style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)' }}>
                   <Sparkles size={13} />
                   Create your workspace
                 </div>
                 <div className="flex items-center gap-3 mb-8">
-                  <div className="w-11 h-11 rounded-[1rem_1.25rem_1rem_1.25rem] bg-indigo-500/20 border border-white/10 flex items-center justify-center">
-                    <Brain size={20} className="text-indigo-200" />
-                  </div>
+                  <img src={iconWhite} alt="SkillBridge" className="w-11 h-11 rounded-[1rem_1.25rem_1rem_1.25rem] object-cover border border-white/10" />
                   <span className="text-white/90 font-semibold text-lg">SkillBridge</span>
                 </div>
 
@@ -112,7 +113,8 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="glass-chip max-w-md justify-start">
+              <div className="glass-chip max-w-md justify-start"
+                style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.85)' }}>
                 <span className="h-2 w-2 rounded-full bg-cyan-300" />
                 Build skills, meet peers, and keep momentum.
               </div>
@@ -132,9 +134,7 @@ export default function Register() {
           <div className="w-full max-w-md">
             <div className="glass-panel card-3d p-6 md:p-7">
               <div className="lg:hidden flex items-center gap-2 mb-6">
-                <div className="w-9 h-9 rounded-[1rem_1.25rem_1rem_1.25rem] bg-indigo-500/20 border border-white/10 flex items-center justify-center">
-                  <Brain size={16} className="text-indigo-300" />
-                </div>
+                <img src={isDark ? iconWhite : iconDark} alt="SkillBridge" className="w-9 h-9 rounded-[1rem_1.25rem_1rem_1.25rem] object-cover border border-white/10" />
                 <span className="font-semibold text-lg">SkillBridge</span>
               </div>
 
@@ -149,7 +149,7 @@ export default function Register() {
               <button
                 onClick={handleGoogle}
                 disabled={googleLoading}
-                className="workspace-button w-full justify-center mb-6 py-3 text-sm"
+                className="workspace-button w-full flex items-center justify-center gap-2 mb-6 py-2.5 text-sm font-medium"
                 style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
               >
                 <GoogleIcon />
@@ -223,7 +223,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="workspace-button w-full justify-center py-3 mt-2 text-sm"
+                  className="workspace-button w-full flex items-center justify-center gap-2 py-2.5 mt-2 text-sm font-medium"
                   style={{ background: 'rgba(79,70,229,0.22)', borderColor: 'rgba(129,140,248,0.25)' }}
                 >
                   {loading ? (

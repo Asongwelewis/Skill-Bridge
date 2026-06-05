@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Zap, Users, Video, User,
-  LogOut, ChevronLeft, ChevronRight, Brain, Sun, Moon, X
+  LogOut, ChevronLeft, ChevronRight, Sun, Moon, X
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import toast from 'react-hot-toast'
+import iconWhite from '../assets/Icon(white).jpg'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -49,9 +50,7 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="w-10 h-10 rounded-[1rem_1.5rem_1rem_1.5rem] bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-900/40">
-          <Brain size={17} className="text-white" />
-        </div>
+        <img src={iconWhite} alt="SkillBridge" className="w-10 h-10 rounded-[1rem_1.5rem_1rem_1.5rem] object-cover shrink-0 shadow-lg shadow-indigo-900/40" />
         {!isCollapsed && (
           <div className="animate-fade-in min-w-0">
             <span className="text-white font-bold text-lg tracking-tight block truncate">SkillBridge</span>

@@ -9,6 +9,8 @@ import { useScrollAnimation, useStaggerAnimation } from '../hooks/useScrollAnima
 import howItWorksImg from '../assets/How it works.png'
 import dataExtractionImg from '../assets/Data extraction-amico.png'
 import scheduleImg from '../assets/schedule.png'
+import iconDark from '../assets/Icon(dark).jpg'
+import iconWhite from '../assets/Icon(white).jpg'
 
 const features = [
   { icon: Zap, title: 'Smart Matching', desc: 'AI pairs you with the right learning partner based on your goals.' },
@@ -68,6 +70,11 @@ export default function Landing() {
     threshold: 0.12,
     rootMargin: '0px 0px -40px 0px',
   })
+  // Scroll-triggered reveals for the two bar charts (grow + stagger one-by-one).
+  const [barsRef, barsVisible] = useScrollAnimation()
+  const [timelineRef, timelineVisible] = useScrollAnimation()
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY)
@@ -116,9 +123,11 @@ export default function Landing() {
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-              <Brain size={18} className="text-white" />
-            </div>
+            <img
+              src={isDark ? iconWhite : iconDark}
+              alt="SkillBridge"
+              className="w-10 h-10 rounded-2xl object-cover shadow-lg shadow-indigo-600/30"
+            />
             <div className="hidden sm:block">
               <p className="text-sm font-semibold leading-tight">SkillBridge</p>
               <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>Peer learning workspace</p>
@@ -196,7 +205,7 @@ export default function Landing() {
                 src={scheduleImg}
                 alt=""
                 aria-hidden="true"
-                className="w-36 sm:w-44 md:w-52 object-contain pointer-events-none select-none animate-float -mb-2"
+                className="w-56 sm:w-72 md:w-80 object-contain pointer-events-none select-none -mb-2"
               />
 
               <div className="space-y-4">
@@ -328,13 +337,24 @@ export default function Landing() {
                               <p className="font-semibold">Progress</p>
                               <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>This week</span>
                             </div>
-                            <div className="h-36 flex items-end gap-2">
-                              {[42, 78, 56, 90, 68, 82].map((height, index) => (
-                                <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                                  <div className="w-full rounded-t-full rounded-b-lg bg-indigo-500/80" style={{ height: `${height}%` }} />
-                                  <span className="text-[10px]" style={{ color: 'var(--text-subtle)' }}>{'MTWTF'.charAt(index) || 'S'}</span>
-                                </div>
-                              ))}
+                            <div ref={barsRef} className="h-36 flex items-end gap-2">
+                              {[42, 78, 56, 90, 68, 82].map((height, index) => {
+                                const grown = reduceMotion || barsVisible
+                                return (
+                                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                                    <div
+                                      className="w-full rounded-t-full rounded-b-lg bg-indigo-500/80"
+                                      style={{
+                                        height: grown ? `${height}%` : '0%',
+                                        opacity: grown ? 1 : 0,
+                                        transition: reduceMotion ? 'none' : 'height 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease',
+                                        transitionDelay: reduceMotion ? '0ms' : `${index * 80}ms`,
+                                      }}
+                                    />
+                                    <span className="text-[10px]" style={{ color: 'var(--text-subtle)' }}>{'MTWTF'.charAt(index) || 'S'}</span>
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
 
@@ -452,15 +472,25 @@ export default function Landing() {
                           24-hour overview
                         </div>
                       </div>
-                      <div className="grid grid-cols-5 md:grid-cols-7 gap-2">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                          <div key={day} className="p-3 rounded-2xl text-center glass">
-                            <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-subtle)' }}>{day}</p>
-                            <div className="mt-3 h-12 rounded-xl bg-indigo-600/15 relative overflow-hidden">
-                              <div className="absolute inset-x-0 bottom-0 bg-indigo-500 rounded-xl" style={{ height: `${40 + index * 6}%` }} />
+                      <div ref={timelineRef} className="grid grid-cols-5 md:grid-cols-7 gap-2">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                          const grown = reduceMotion || timelineVisible
+                          return (
+                            <div key={day} className="p-3 rounded-2xl text-center glass">
+                              <p className="text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--text-subtle)' }}>{day}</p>
+                              <div className="mt-3 h-12 rounded-xl bg-indigo-600/15 relative overflow-hidden">
+                                <div
+                                  className="absolute inset-x-0 bottom-0 bg-indigo-500 rounded-xl"
+                                  style={{
+                                    height: grown ? `${40 + index * 6}%` : '0%',
+                                    transition: reduceMotion ? 'none' : 'height 0.6s cubic-bezier(0.16,1,0.3,1)',
+                                    transitionDelay: reduceMotion ? '0ms' : `${index * 80}ms`,
+                                  }}
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -473,6 +503,12 @@ export default function Landing() {
 
       <section className="py-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
+          <img
+            src={scheduleImg}
+            alt=""
+            aria-hidden="true"
+            className="w-56 sm:w-72 md:w-80 mx-auto mb-6 object-contain pointer-events-none select-none"
+          />
           <Reveal className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">A cleaner structure, with real depth</h2>
             <p className="max-w-2xl mx-auto" style={{ color: 'var(--text-muted)' }}>
