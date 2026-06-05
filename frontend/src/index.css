@@ -337,8 +337,8 @@ body {
               box-shadow 0.25s ease;
 }
 .hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(79,70,229,0.18);
+  transform: scale(1.025);
+  box-shadow: 0 8px 28px rgba(79,70,229,0.22);
 }
 
 .perspective-1200 {
@@ -354,7 +354,25 @@ body {
 }
 
 .card-3d:hover {
-  transform: translateY(-6px) rotateX(4deg) rotateY(-6deg);
+  transform: rotateX(4deg) rotateY(-6deg);
+  box-shadow: 0 20px 60px rgba(79,70,229,0.16);
+}
+
+/* Auto-rotating 3D float — replaces cursor-follow on hero mockup */
+@keyframes cardFloat3D {
+  0%   { transform: perspective(1600px) rotateX(4deg)  rotateY(-6deg)  rotateZ(0.4deg)  translateY(0px); }
+  20%  { transform: perspective(1600px) rotateX(1deg)  rotateY(6deg)   rotateZ(-0.5deg) translateY(-10px); }
+  45%  { transform: perspective(1600px) rotateX(-3deg) rotateY(3deg)   rotateZ(0.3deg)  translateY(-6px); }
+  70%  { transform: perspective(1600px) rotateX(2deg)  rotateY(-5deg)  rotateZ(-0.4deg) translateY(-12px); }
+  100% { transform: perspective(1600px) rotateX(4deg)  rotateY(-6deg)  rotateZ(0.4deg)  translateY(0px); }
+}
+
+.card-float-3d {
+  animation: cardFloat3D 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-float-3d { animation: none !important; }
 }
 
 .landing-cursor-dot {
@@ -567,6 +585,8 @@ body {
 }
 
 .workspace-button {
+  display: flex;
+  align-items: center;
   border-radius: 1.15rem 1.9rem 1.15rem 1.9rem;
 }
 

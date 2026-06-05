@@ -67,7 +67,7 @@ export default function Sidebar() {
                transition-all duration-200 group relative overflow-hidden animate-slide-left
                ${isActive
                  ? 'bg-white/12 text-white shadow-lg shadow-indigo-900/30 border border-white/10'
-                 : 'text-[rgba(255,255,255,0.58)] hover:text-white hover:bg-[rgba(255,255,255,0.07)] border border-transparent'
+                 : 'text-[rgba(255,255,255,0.58)] hover:text-white hover:bg-[rgba(255,255,255,0.07)] hover:translate-x-1 border border-transparent'
                }`
             }
           >

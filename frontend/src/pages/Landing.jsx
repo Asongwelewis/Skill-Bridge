@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Tilt from 'react-parallax-tilt'
 import {
   Brain, Zap, Video, Award, ArrowRight, Star, Sun, Moon,
   Search, Settings, Bell, Play, Grid3X3, Clock, BarChart3, CircleDot, ChevronRight
@@ -161,7 +160,7 @@ export default function Landing() {
             </button>
             <Link
               to="/login"
-              className="hidden sm:inline-flex px-5 py-2.5 rounded-[1.3rem_2rem_1.3rem_2rem] font-medium hover-lift glass"
+              className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-[1.3rem_2rem_1.3rem_2rem] font-medium hover-lift glass"
             >
               Sign In
             </Link>
@@ -176,7 +175,7 @@ export default function Landing() {
         </div>
       </nav>
 
-      <section className="relative pt-28 md:pt-32 pb-16 md:pb-20 overflow-hidden">
+      <section className="relative pt-16 md:pt-20 pb-16 md:pb-20 overflow-hidden">
         {/* Ambient beam background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
           <div className="landing-beam landing-beam-1" />
@@ -239,19 +238,7 @@ export default function Landing() {
               </div>
             </Reveal>
 
-              <Tilt
-                tiltMaxAngleX={8}
-                tiltMaxAngleY={8}
-                perspective={1600}
-                scale={1.02}
-                transitionSpeed={400}
-                glareEnable={isDark}
-                glareMaxOpacity={0.06}
-                glareColor="#818cf8"
-                glarePosition="all"
-                glareBorderRadius="2rem"
-                className="relative"
-              >
+              <div className="card-float-3d relative">
               <div
                 className="absolute inset-0 rounded-[2rem] blur-3xl opacity-50"
                 style={{
@@ -486,7 +473,7 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-              </Tilt>
+              </div>
           </div>
         </div>
       </section>
