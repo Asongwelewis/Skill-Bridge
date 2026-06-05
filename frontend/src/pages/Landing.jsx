@@ -8,6 +8,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useScrollAnimation, useStaggerAnimation } from '../hooks/useScrollAnimation'
 import howItWorksImg from '../assets/How it works.png'
 import dataExtractionImg from '../assets/Data extraction-amico.png'
+import scheduleImg from '../assets/schedule.png'
 
 const features = [
   { icon: Zap, title: 'Smart Matching', desc: 'AI pairs you with the right learning partner based on your goals.' },
@@ -62,8 +63,6 @@ function StatPill({ value, label }) {
 export default function Landing() {
   const { isDark, toggleTheme } = useTheme()
   const [scrollY, setScrollY] = useState(0)
-  const cursorDotRef = useRef(null)
-  const cursorGlowRef = useRef(null)
   const sphereRef = useRef(null)
   const [featuresRef, featuresVisible, featureDelay] = useStaggerAnimation(features.length, {
     threshold: 0.12,
@@ -76,47 +75,24 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Mouse-driven parallax for the 3D sphere only. The site-wide custom cursor
+  // lives in <CustomCursor /> at the app root. Kept gentle so the sphere always
+  // stays within its (overflow-clipped) panel as you move/scroll.
   useEffect(() => {
-    const isFinePointer = window.matchMedia('(pointer: fine)').matches
-    if (!isFinePointer) return
+    if (!window.matchMedia('(pointer: fine)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const move = (event) => {
+      if (!sphereRef.current) return
       const { clientX, clientY } = event
-      const x = clientX - 10
-      const y = clientY - 10
-      const gx = clientX - 52
-      const gy = clientY - 52
-      if (cursorDotRef.current) {
-        cursorDotRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
-      }
-      if (cursorGlowRef.current) {
-        cursorGlowRef.current.style.transform = `translate3d(${gx}px, ${gy}px, 0)`
-      }
-      if (sphereRef.current) {
-        const dx = (clientX / window.innerWidth - 0.5) * 28
-        const dy = (clientY / window.innerHeight - 0.5) * 20
-        sphereRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotateX(${8 - dy * 0.18}deg) rotateY(${-dx * 0.22}deg)`
-      }
+      const dx = (clientX / window.innerWidth - 0.5) * 14
+      const dy = (clientY / window.innerHeight - 0.5) * 10
+      sphereRef.current.style.transform =
+        `translate3d(${dx}px, ${dy}px, 0) rotateX(${8 - dy * 0.18}deg) rotateY(${-dx * 0.22}deg)`
     }
 
-    const enter = () => {
-      if (cursorDotRef.current) cursorDotRef.current.style.opacity = '1'
-      if (cursorGlowRef.current) cursorGlowRef.current.style.opacity = '1'
-    }
-
-    const leave = () => {
-      if (cursorDotRef.current) cursorDotRef.current.style.opacity = '0'
-      if (cursorGlowRef.current) cursorGlowRef.current.style.opacity = '0'
-    }
-
-    window.addEventListener('mousemove', move)
-    window.addEventListener('mouseenter', enter)
-    window.addEventListener('mouseleave', leave)
-    return () => {
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('mouseenter', enter)
-      window.removeEventListener('mouseleave', leave)
-    }
+    window.addEventListener('mousemove', move, { passive: true })
+    return () => window.removeEventListener('mousemove', move)
   }, [])
 
   const boardTransform = useMemo(() => {
@@ -127,9 +103,7 @@ export default function Landing() {
   }, [scrollY])
 
   return (
-    <div className="min-h-screen theme-transition" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
-      <div ref={cursorGlowRef} className="landing-cursor-glow" aria-hidden="true" />
-      <div ref={cursorDotRef} className="landing-cursor-dot" aria-hidden="true" />
+    <div className="min-h-screen theme-transition overflow-x-hidden" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       <nav
         className="fixed top-0 inset-x-0 z-50 theme-transition animate-slide-down"
         style={{
@@ -218,8 +192,15 @@ export default function Landing() {
                 A learning workspace with depth
               </div>
 
+              <img
+                src={scheduleImg}
+                alt=""
+                aria-hidden="true"
+                className="w-36 sm:w-44 md:w-52 object-contain pointer-events-none select-none animate-float -mb-2"
+              />
+
               <div className="space-y-4">
-                <h1 className="text-5xl md:text-6xl xl:text-7xl font-black leading-[0.95] tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black leading-[0.95] tracking-tight">
                   Build your
                   <span className="block gradient-text">learning command center.</span>
                 </h1>
@@ -413,11 +394,13 @@ export default function Landing() {
                           <p className="font-semibold">3D Sphere</p>
                           <span className="text-xs px-2.5 py-1 rounded-full glass">Live</span>
                         </div>
-                        <div className="relative h-40 flex items-center justify-center overflow-hidden rounded-[1.3rem]"
+                        <div className="relative h-44 p-3 flex items-center justify-center overflow-hidden rounded-[1.3rem]"
                           style={{
                             background: isDark
                               ? 'radial-gradient(circle at 50% 35%, rgba(255,255,255,0.10), rgba(15,23,42,0.96) 56%)'
                               : 'radial-gradient(circle at 50% 35%, rgba(255,255,255,0.7), rgba(241,245,255,0.96) 56%)',
+                            WebkitMaskImage: 'radial-gradient(circle at 50% 50%, #000 62%, transparent 95%)',
+                            maskImage: 'radial-gradient(circle at 50% 50%, #000 62%, transparent 95%)',
                           }}>
                           <div
                             ref={sphereRef}
@@ -499,11 +482,10 @@ export default function Landing() {
 
           <div ref={featuresRef} className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
             {features.map(({ icon: Icon, title, desc }, index) => {
-              const baseClass = index % 2 === 0 ? 'reveal-left' : 'reveal-right'
               return (
                 <div
                   key={title}
-                  className={`${baseClass} ${featureDelay(index)} ${featuresVisible ? 'visible' : ''}`}
+                  className={`reveal-left ${featureDelay(index)} ${featuresVisible ? 'visible' : ''}`}
                 >
                   <div className="p-5 rounded-[1.6rem] glass hover-lift h-full">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-600/15 flex items-center justify-center mb-4">
@@ -540,7 +522,7 @@ export default function Landing() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             {steps.map(({ step, title, desc }, index) => (
-              <Reveal key={step} delay={index * 100} type="scale">
+              <Reveal key={step} delay={index * 100} type="left">
                 <div className="p-5 rounded-[1.5rem] glass h-full">
                   <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black mb-4">
                     {step}
@@ -561,7 +543,7 @@ export default function Landing() {
           </Reveal>
           <div className="grid md:grid-cols-3 gap-4">
             {testimonials.map(({ name, role, text, avatar }, index) => (
-              <Reveal key={name} delay={index * 90} type="scale">
+              <Reveal key={name} delay={index * 90} type="left">
                 <div className="p-6 rounded-[1.6rem] glass h-full">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">
@@ -586,7 +568,7 @@ export default function Landing() {
       </section>
 
       <section className="py-20 px-4 md:px-6">
-        <Reveal type="scale" className="max-w-4xl mx-auto">
+        <Reveal type="left" className="max-w-4xl mx-auto">
           <div className="p-8 md:p-10 rounded-[2rem] glass text-center">
             <img
               src={dataExtractionImg}

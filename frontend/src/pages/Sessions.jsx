@@ -71,7 +71,7 @@ export default function Sessions() {
   const completed = sessions.filter(s => s.status === 'completed')
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] mb-6">
         <section className="glass-panel card-3d p-6 md:p-8 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">

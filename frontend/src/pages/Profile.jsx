@@ -17,7 +17,7 @@ export default function Profile() {
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ bio: '', full_name: '', location: '' })
+  const [form, setForm] = useState({ bio: '', full_name: '', location: '', avatar_url: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [badgesRef, badgesVisible, stagger] = useStaggerAnimation(4)
@@ -32,12 +32,18 @@ export default function Profile() {
           bio: p?.bio || user?.user_metadata?.bio || '',
           full_name: p?.full_name || user?.user_metadata?.full_name || '',
           location: p?.location || '',
+          avatar_url: p?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '',
         })
       })
       .catch(() => {
         const meta = user.user_metadata || {}
         setProfile({ ...meta, email: user.email, id: user.id })
-        setForm({ bio: meta.bio || '', full_name: meta.full_name || '', location: meta.location || '' })
+        setForm({
+          bio: meta.bio || '',
+          full_name: meta.full_name || '',
+          location: meta.location || '',
+          avatar_url: meta.avatar_url || meta.picture || '',
+        })
       })
       .finally(() => setLoading(false))
   }, [user])
@@ -63,7 +69,8 @@ export default function Profile() {
   const sessionsCount = profile?.sessionsCount || 0
   const name = form.full_name || user?.email?.split('@')[0] || 'Learner'
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+  // Prefer the form value so the avatar previews live while editing the URL.
+  const avatarUrl = form.avatar_url || profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
 
   const inputStyle = {
     background: 'rgba(255,255,255,0.06)',
@@ -84,7 +91,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] mb-6">
         <section className="glass-panel card-3d p-6 md:p-8 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
@@ -179,6 +186,9 @@ export default function Profile() {
                     </div>
                   )}
                   <button
+                    onClick={() => setEditing(true)}
+                    title="Change profile picture"
+                    aria-label="Change profile picture"
                     className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
                     style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.14)', color: 'var(--text-muted)' }}
                   >
@@ -196,6 +206,17 @@ export default function Profile() {
             <div className="mt-5">
               {editing ? (
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Profile picture URL</label>
+                    <input
+                      value={form.avatar_url}
+                      onChange={e => setForm(f => ({ ...f, avatar_url: e.target.value }))}
+                      placeholder="https://example.com/avatar.jpg"
+                      className="w-full px-4 py-2.5 rounded-[1rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                      style={inputStyle}
+                    />
+                    <p className="text-xs mt-1.5" style={{ color: 'var(--text-subtle)' }}>Paste an image link — the preview updates above.</p>
+                  </div>
                   {[
                     { label: 'Display Name', key: 'full_name', placeholder: 'Your name' },
                     { label: 'Location', key: 'location', placeholder: 'e.g. New York, USA' },

@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import OnboardingGate from './components/OnboardingGate'
 import Layout from './components/Layout'
+import CustomCursor from './components/CustomCursor'
 
 import Landing from './pages/Landing'
 import Login from './pages/Login'
@@ -24,6 +25,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <CustomCursor />
           <Routes>
             {/* Public */}
             <Route path="/" element={<Landing />} />

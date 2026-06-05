@@ -101,7 +101,7 @@ export default function Matches() {
         className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
         style={{ opacity: isDark ? 0.06 : 0.08 }}
       />
-      <div className="relative z-10 p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+      <div className="relative z-10 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] mb-6">
         <section className="glass-panel card-3d p-6 md:p-8 relative overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">

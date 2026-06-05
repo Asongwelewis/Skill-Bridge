@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Zap, Users, Video, User,
-  LogOut, ChevronLeft, ChevronRight, Brain, Sun, Moon
+  LogOut, ChevronLeft, ChevronRight, Brain, Sun, Moon, X
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -16,11 +16,14 @@ const navItems = [
   { to: '/profile',   icon: User,            label: 'Profile' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onClose }) {
   const { user, signOut } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
+
+  // Collapse only applies on desktop; the mobile drawer always shows full width.
+  const isCollapsed = collapsed
 
   const handleSignOut = async () => {
     await signOut()
@@ -30,15 +33,17 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="glass-panel flex flex-col h-screen sticky top-0 shrink-0 theme-transition"
+      className={`glass-panel flex flex-col h-screen shrink-0 theme-transition
+        fixed top-0 left-0 z-50 lg:static lg:z-auto
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-[120%]'} lg:translate-x-0`}
       style={{
-        width: collapsed ? '84px' : '260px',
+        width: isCollapsed ? '84px' : '260px',
         margin: '12px 0 12px 12px',
         borderRadius: '28px',
         overflow: 'hidden',
         background: `linear-gradient(180deg, rgba(17,17,34,0.92) 0%, rgba(21,20,42,0.9) 100%)`,
         border: '1px solid var(--sidebar-border)',
-        transition: 'width 0.3s cubic-bezier(0.16,1,0.3,1), margin 0.3s ease',
+        transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1), width 0.3s cubic-bezier(0.16,1,0.3,1), margin 0.3s ease',
       }}
     >
       {/* Logo */}
@@ -47,12 +52,21 @@ export default function Sidebar() {
         <div className="w-10 h-10 rounded-[1rem_1.5rem_1rem_1.5rem] bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-900/40">
           <Brain size={17} className="text-white" />
         </div>
-        {!collapsed && (
-          <div className="animate-fade-in">
-            <span className="text-white font-bold text-lg tracking-tight block">SkillBridge</span>
+        {!isCollapsed && (
+          <div className="animate-fade-in min-w-0">
+            <span className="text-white font-bold text-lg tracking-tight block truncate">SkillBridge</span>
             <span className="text-[11px] text-white/45">Workspace mode</span>
           </div>
         )}
+        {/* Close button — mobile drawer only */}
+        <button
+          onClick={onClose}
+          className="lg:hidden ml-auto w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+            text-white/60 hover:text-white hover:bg-white/10 transition-all"
+          aria-label="Close navigation"
+        >
+          <X size={16} />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -160,17 +174,17 @@ export default function Sidebar() {
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(c => !c)}
-          className="flex items-center gap-3 w-full px-3 py-2 workspace-button
+          className="hidden lg:flex items-center gap-3 w-full px-3 py-2 workspace-button
             text-[rgba(255,255,255,0.3)] hover:text-white/60 hover:bg-white/5
             transition-all duration-200 text-xs"
         >
           <span className="shrink-0 transition-transform duration-300">
-            {collapsed
+            {isCollapsed
               ? <ChevronRight size={15} />
               : <ChevronLeft size={15} />
             }
           </span>
-          {!collapsed && <span>Collapse</span>}
+          {!isCollapsed && <span>Collapse</span>}
         </button>
       </div>
     </aside>

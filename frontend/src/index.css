@@ -521,3 +521,44 @@ body {
 .page-enter {
   animation: slideUp 0.45s cubic-bezier(0.16,1,0.3,1) both;
 }
+
+/* ─── GLOBAL CUSTOM CURSOR ───────────────────────────── */
+/* Hide the native cursor only on precise pointers (mouse/trackpad). Touch and
+   coarse pointers keep the OS cursor/touch behavior untouched. Text carets are
+   independent of `cursor` and continue to work in inputs. */
+@media (pointer: fine) {
+  body { cursor: none; }
+  a, button, input, textarea, select, label,
+  [role="button"], .workspace-button { cursor: none; }
+}
+/* On coarse/touch devices, never render the custom cursor layers. */
+@media (pointer: coarse) {
+  .landing-cursor-dot, .landing-cursor-glow { display: none !important; }
+}
+
+/* Cursor interaction states (transform is driven by JS, so only restyle
+   visuals here to avoid clobbering the follow transform). */
+.landing-cursor-dot.cursor-hover {
+  background: #818cf8;
+  box-shadow: 0 0 0 10px rgba(129,140,248,0.18);
+}
+.landing-cursor-dot.cursor-active {
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.32);
+}
+.landing-cursor-glow.cursor-hover {
+  filter: blur(2px);
+}
+
+/* ─── REDUCED MOTION ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .landing-cursor-dot, .landing-cursor-glow { transition: none; }
+  .reveal, .reveal-left, .reveal-right, .reveal-scale {
+    transition: opacity 0.3s ease;
+    transform: none;
+  }
+  .reveal.visible, .reveal-left.visible,
+  .reveal-right.visible, .reveal-scale.visible {
+    transform: none;
+  }
+  .animate-float, .animate-spin-slow { animation: none; }
+}

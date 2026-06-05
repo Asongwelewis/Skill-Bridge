@@ -97,7 +97,7 @@ export default function Skills() {
   const profLabel = (level) => PROFICIENCY.find(p => p.level === level)?.label || 'Intermediate'
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
+    <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto page-enter theme-transition" style={{ color: 'var(--text)' }}>
       {/* Header */}
       <div className="flex items-start justify-between mb-8 animate-slide-down">
         <div>

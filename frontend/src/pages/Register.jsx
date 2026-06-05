@@ -55,7 +55,7 @@ export default function Register() {
   const inputClass = 'w-full pl-10 pr-4 py-3 rounded-[1.1rem] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all duration-200'
 
   return (
-    <div className="min-h-screen theme-transition overflow-hidden" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+    <div className="h-screen theme-transition overflow-hidden" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-8rem] left-[-4rem] h-[22rem] w-[22rem] rounded-full blur-3xl animate-float"
           style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)' }} />
@@ -63,9 +63,11 @@ export default function Register() {
           style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.14) 0%, transparent 70%)', animationDelay: '1.2s' }} />
       </div>
 
-      <div className="relative z-10 grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="relative z-10 grid h-screen grid-cols-1 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="hidden lg:flex flex-col justify-between p-10 xl:p-12 order-2">
-          <div className="glass-panel card-3d h-full p-8 xl:p-10 relative overflow-hidden">
+          {/* Brand panel: dark glass gradient in BOTH themes so the white text reads. */}
+          <div className="glass-panel card-3d h-full p-8 xl:p-10 relative overflow-hidden"
+            style={{ background: 'linear-gradient(160deg, #0a0918 0%, #141228 60%, #1a1938 100%)', borderColor: 'rgba(129,140,248,0.18)' }}>
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-14 left-10 h-52 w-52 rounded-full blur-3xl animate-slow-float"
                 style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%)' }} />
@@ -118,10 +120,10 @@ export default function Register() {
           </div>
         </section>
 
-        <section className="relative flex items-center justify-center px-5 py-8 md:px-8 order-1">
+        <section className="relative flex items-center justify-center px-5 py-8 md:px-8 order-1 overflow-y-auto">
           <button
             onClick={toggleTheme}
-            className="absolute top-6 right-6 workspace-button"
+            className="absolute top-6 right-6 workspace-button z-10"
             style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' }}
           >
             {isDark ? <Sun size={15} className="text-amber-300" /> : <Moon size={15} className="text-indigo-300" />}
