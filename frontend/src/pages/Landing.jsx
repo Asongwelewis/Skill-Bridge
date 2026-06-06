@@ -140,6 +140,13 @@ export default function Landing() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              to="/about"
+              className="hidden md:inline-flex px-4 py-2.5 rounded-[1.3rem_2rem_1.3rem_2rem] font-medium hover-lift"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              About
+            </Link>
             <button
               onClick={toggleTheme}
               className="w-11 h-11 rounded-[1.25rem_1.75rem_1.25rem_1.75rem] flex items-center justify-center hover-lift glass"
@@ -622,6 +629,25 @@ export default function Landing() {
           </div>
         </Reveal>
       </section>
+
+      <footer className="py-10 px-4 md:px-6 border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img
+              src={isDark ? iconWhite : iconDark}
+              alt="SkillBridge"
+              className="w-9 h-9 rounded-2xl object-cover"
+            />
+            <p className="text-sm font-semibold">SkillBridge</p>
+          </div>
+          <div className="flex items-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+            <Link to="/about" className="hover-lift">About Us</Link>
+            <Link to="/login" className="hover-lift">Sign In</Link>
+            <Link to="/register" className="hover-lift">Get Started</Link>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>© 2026 SkillBridge</p>
+        </div>
+      </footer>
     </div>
   )
 }
