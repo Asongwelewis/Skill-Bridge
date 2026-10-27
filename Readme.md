@@ -1,41 +1,47 @@
 <div align="center">
 
-# Skill-Bridge
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:F58220,100:7B2FF7&height=220&section=header&text=Skill-Bridge&fontSize=72&fontColor=ffffff&animation=fadeIn&fontAlignY=36&desc=Cloud-native%20peer-to-peer%20learning%20platform&descAlignY=58&descSize=18" width="100%" />
 
-**A cloud-native peer-to-peer learning platform: find someone who can teach what you want to learn, meet them live in the browser, and prove the learning happened.**
+<a href="#"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=20&pause=1000&color=F58220&center=true&vCenter=true&width=720&lines=Find+a+peer+%E2%86%92+Meet+live+%E2%86%92+Prove+you+learned;5+microservices+%E2%80%A2+Kafka+%E2%80%A2+Kubernetes+%E2%80%A2+Terraform;Provisioned%2C+configured+and+deployed+from+code" alt="Typing intro" /></a>
 
-[Live demo](http://skillbridge-sen3244.duckdns.org) · [Architecture](#architecture) · [Cloud infrastructure](#cloud-infrastructure) · [Getting started](#getting-started) · [Full architecture document](docs/Architecture.md)
+<p>
+  <a href="http://skillbridge-sen3244.duckdns.org"><img src="https://img.shields.io/badge/%F0%9F%8C%90_Live_Demo-F58220?style=for-the-badge" alt="Live demo" /></a>
+  <a href="#-architecture"><img src="https://img.shields.io/badge/%F0%9F%8F%97_Architecture-7B2FF7?style=for-the-badge" alt="Architecture" /></a>
+  <a href="#%EF%B8%8F-cloud-infrastructure"><img src="https://img.shields.io/badge/%E2%98%81%EF%B8%8F_Cloud_Infra-326CE5?style=for-the-badge" alt="Cloud infrastructure" /></a>
+  <a href="docs/Architecture.md"><img src="https://img.shields.io/badge/%F0%9F%93%96_Design_Doc-222222?style=for-the-badge" alt="Design doc" /></a>
+</p>
 
-![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)
-![React](https://img.shields.io/badge/React-SPA-61DAFB?logo=react&logoColor=black)
-![Kafka](https://img.shields.io/badge/Apache_Kafka-KRaft-231F20?logo=apachekafka&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-K3s-326CE5?logo=kubernetes&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-DigitalOcean-7B42BC?logo=terraform&logoColor=white)
-![Ansible](https://img.shields.io/badge/Ansible-config-EE0000?logo=ansible&logoColor=white)
-![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?logo=jenkins&logoColor=white)
+<img src="https://skillicons.dev/icons?i=nodejs,expressjs,react,vite,kafka,redis,elasticsearch,postgresql,supabase,docker,kubernetes,terraform,ansible,jenkins,prometheus,grafana,nginx&perline=9" alt="Tech stack" />
 
 </div>
 
----
+<br/>
 
-## Table of contents
-
-1. [Problem](#problem)
-2. [Solution](#solution)
-3. [Features](#features)
-4. [Architecture](#architecture)
-5. [Cloud infrastructure](#cloud-infrastructure)
-6. [Tech stack](#tech-stack)
-7. [Design decisions and trade-offs](#design-decisions-and-trade-offs)
-8. [Getting started](#getting-started)
-9. [Testing](#testing)
-10. [Project structure](#project-structure)
-11. [Known limitations and roadmap](#known-limitations-and-roadmap)
-12. [Team](#team)
+> **TL;DR:** Users list skills they can teach and want to learn. Skill-Bridge matches complementary peers, connects them in a peer-to-peer browser video call, then generates an AI quiz to prove the learning happened. It runs as 5 event-driven microservices on Kubernetes, on infrastructure built entirely from Terraform and Ansible.
 
 ---
 
-## Problem
+<details>
+<summary><b>📑 Table of contents</b></summary>
+
+1. [🎯 Problem](#-problem)
+2. [💡 Solution](#-solution)
+3. [✨ Features](#-features)
+4. [🏗 Architecture](#-architecture)
+5. [☁️ Cloud infrastructure](#️-cloud-infrastructure)
+6. [🧰 Tech stack](#-tech-stack)
+7. [⚖️ Design decisions](#️-design-decisions-and-trade-offs)
+8. [🚀 Getting started](#-getting-started)
+9. [🧪 Testing](#-testing)
+10. [📁 Project structure](#-project-structure)
+11. [🗺 Roadmap](#-known-limitations-and-roadmap)
+12. [👥 Team](#-team)
+
+</details>
+
+---
+
+## 🎯 Problem
 
 Learning from a peer is one of the fastest ways to pick up a skill, but it is hard to organise:
 
@@ -43,7 +49,7 @@ Learning from a peer is one of the fastest ways to pick up a skill, but it is ha
 - **Meeting is friction.** Most video tools need an install, an account or a paid plan before two strangers can talk.
 - **Nothing proves learning happened.** A conversation ends and there is no record or check that the learner actually understood anything.
 
-## Solution
+## 💡 Solution
 
 Skill-Bridge turns informal skill swaps into a structured loop:
 
@@ -53,7 +59,7 @@ List skills (teach / learn)  →  Get matched  →  Meet live in the browser  �
 
 Users list the skills they can teach and the skills they want to learn. A scoring algorithm pairs complementary users. Matched peers meet in a browser video call with chat, with nothing to install. When the session ends, an event triggers an LLM to generate a quiz on the skill that was taught. Passing it awards experience points and badges, which turns the session into evidence of learning.
 
-## Features
+## ✨ Features
 
 | Feature | What it does | How it works |
 | --- | --- | --- |
@@ -66,7 +72,7 @@ Users list the skills they can teach and the skills they want to learn. A scorin
 | **Notifications** | Alerts for new matches, completed sessions and quiz results | `notification-service` consumes `match.found`, `session.completed` and `quiz.completed`. Calls to external providers go through a **circuit breaker** (CLOSED → OPEN → HALF_OPEN) so a failing provider can't cause cascading failures. |
 | **Onboarding and auth** | Guided first-run setup and secure sign-in | Supabase Auth issues the tokens. Each service checks them in its own auth middleware, and an onboarding gate in the SPA routes new users through a setup wizard. |
 
-## Architecture
+## 🏗 Architecture
 
 Skill-Bridge is made of **five independent Node.js microservices** behind an ingress, with a React single-page app in front. Services never call each other's internals. They communicate **asynchronously through Apache Kafka events** and share a managed Postgres database for data that has to stay consistent.
 
@@ -137,7 +143,7 @@ sequenceDiagram
 | `match.found` | matching | notification-service |
 | `quiz.completed` | quiz flow | notification-service |
 
-## Cloud infrastructure
+## ☁️ Cloud infrastructure
 
 The whole platform runs on one cloud VM that is **provisioned, configured and deployed entirely from code**. Nothing on the server is set up by hand.
 
@@ -218,7 +224,7 @@ The playbooks are **idempotent**: running one again skips releases that already 
 - **Fault isolation:** circuit breaker in the notification service, and asynchronous Kafka processing so a slow consumer never blocks a user request.
 - **Scale by design:** video is peer-to-peer, so the hardest-to-scale traffic never reaches the cluster.
 
-## Tech stack
+## 🧰 Tech stack
 
 | Layer | Technology |
 | --- | --- |
@@ -235,7 +241,7 @@ The playbooks are **idempotent**: running one again skips releases that already 
 | Observability | Prometheus · Grafana · Alertmanager |
 | Testing | Jest with coverage |
 
-## Design decisions and trade-offs
+## ⚖️ Design decisions and trade-offs
 
 **Microservices with a shared database.** The core entities are tightly linked: matches reference profiles and skills, sessions reference matches, and quizzes reference sessions. Giving each service its own database would have moved referential integrity into fragile application code. We chose one managed Postgres with foreign keys and RLS, and kept *runtime* coupling loose through Kafka. The notification service shows the stricter database-per-service pattern where its data allows it. The full reasoning is in [`docs/Architecture.md`](docs/Architecture.md).
 
@@ -245,13 +251,15 @@ The playbooks are **idempotent**: running one again skips releases that already 
 
 **Peer-to-peer media.** Relaying video through a server would make bandwidth the main cost and the main bottleneck. WebRTC keeps media between browsers, and the server only handles small signalling messages.
 
-## Getting started
+## 🚀 Getting started
 
 ### Prerequisites
 
 Node.js 20+, Docker, a Supabase project, a Groq API key. To deploy: a DigitalOcean account, Terraform and Ansible.
 
-### Run the services locally
+<details>
+<summary><b>💻 Run the services locally</b></summary>
+
 
 ```bash
 git clone https://github.com/Asongwelewis/Skill-Bridge.git
@@ -269,7 +277,11 @@ cd frontend && npm ci && npm run dev
 
 Kafka, Redis and Elasticsearch must be reachable, either locally in Docker or through port-forwarding from the cluster.
 
-### Deploy to the cloud
+</details>
+
+<details>
+<summary><b>☁️ Deploy to the cloud (Terraform → Ansible → K3s)</b></summary>
+
 
 ```bash
 # 1. Provision
@@ -289,8 +301,9 @@ ansible-playbook -i inventory.ini playbooks/04_deploy_monitoring.yml
 kubectl apply -f k8s/
 # Later deployments run through the Jenkins pipeline.
 ```
+</details>
 
-## Testing
+## 🧪 Testing
 
 Each service has a Jest suite (`Services/*/tests`) that runs with coverage in CI. External dependencies (Kafka, Redis, Elasticsearch, Supabase) are mocked so the tests run without infrastructure.
 
@@ -298,7 +311,7 @@ Each service has a Jest suite (`Services/*/tests`) that runs with coverage in CI
 cd Services/<service> && npm test -- --coverage
 ```
 
-## Project structure
+## 📁 Project structure
 
 ```
 Skill-Bridge/
@@ -317,7 +330,7 @@ Skill-Bridge/
 └── Jenkinsfile                # CI/CD pipeline
 ```
 
-## Known limitations and roadmap
+## 🗺 Known limitations and roadmap
 
 - **Signalling is pinned to one pod.** WebRTC rooms live in session-service memory, so both peers must reach the same pod. The fix is a Redis pub/sub backplane (Redis is already deployed), which would let session-service autoscale.
 - **Single-node cluster.** Next step: multi-node K3s or a managed Kubernetes service through Terraform.
@@ -325,7 +338,7 @@ Skill-Bridge/
 - **Secrets management.** Move from manually created Kubernetes Secrets to Sealed Secrets or an external secrets operator.
 - **Pipeline as code for infrastructure.** Run `terraform plan` in CI on infrastructure changes.
 
-## Team
+## 👥 Team
 
 Built by a team of students at ICT University, Yaoundé, for the Software Architecture / Cloud Computing course.
 
@@ -333,3 +346,13 @@ Built by a team of students at ICT University, Yaoundé, for the Software Archit
 | --- | --- |
 | **Alex** ([@Alexsilvin](https://github.com/Alexsilvin)) | Microservices, matching algorithm, WebRTC signalling and video, CQRS and Repository patterns, Redis and Elasticsearch integration, Jenkins pipeline, frontend |
 | **Asongwe Lewis Fon** ([@Asongwelewis](https://github.com/Asongwelewis)) | Infrastructure as code: Terraform provisioning (droplet, cloud firewall, generated inventory) and Ansible playbooks (K3s, Helm data services, Jenkins, ingress, monitoring), secure-by-default secrets handling, documentation |
+
+---
+
+<div align="center">
+
+**If this project helped or inspired you, consider leaving a ⭐**
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:7B2FF7,100:F58220&height=120&section=footer" width="100%" />
+
+</div>
